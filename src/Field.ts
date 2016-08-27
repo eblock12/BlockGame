@@ -1,4 +1,4 @@
-import * as Constants from './constants';
+import * as Constants from './Constants';
 import Page from './Page';
 import Piece from './Piece';
 import PieceBag from './PieceBag';

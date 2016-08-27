@@ -1,4 +1,4 @@
-import * as Constants from './constants';
+import * as Constants from './Constants';
 import Helpers from './Helpers';
 
 /** Stores the state of a game Piece (i.e. it's type, position, rotation) */

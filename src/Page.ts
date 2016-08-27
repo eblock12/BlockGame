@@ -1,4 +1,4 @@
-import * as Constants from './constants';
+import * as Constants from './Constants';
 import Field from './Field';
 import Helpers from './Helpers';
 import INetworkState from './INetworkState';
@@ -117,7 +117,7 @@ export default class Page implements INetworkState {
         if (document.readyState === 'complete') {
             this._initialize();
         } else {
-            window.addEventListener('load', this._initialize);
+            window.addEventListener('load', () => this._initialize());
         }
     }
 
@@ -472,12 +472,12 @@ export default class Page implements INetworkState {
 
         this.canvas = document.getElementById("canvasMain");
         if (this.canvas) {
-            window.addEventListener("resize", this._resizeCanvas);
-            window.addEventListener("keydown", this._onKeyDown);
-            window.addEventListener("keyup", this._onKeyUp);
-            window.addEventListener("focusin", this._onFocusIn);
-            window.addEventListener("focusout", this._onFocusOut);
-            window.addEventListener("hashchange", this._resetGame);
+            window.addEventListener("resize", (e: Event) => this._resizeCanvas());
+            window.addEventListener("keydown", (e: Event) => this._onKeyDown(e));
+            window.addEventListener("keyup", (e: Event) => this._onKeyUp(e));
+            window.addEventListener("focusin", (e: Event) => this._onFocusIn(e));
+            window.addEventListener("focusout", (e: Event) => this._onFocusOut(e));
+            window.addEventListener("hashchange", (e: Event) => this._resetGame());
 
             this._resetGame();
 
