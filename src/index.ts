@@ -1,3 +1,5 @@
+import * as Constants from './constants';
+
 (function () {
     // canvas DOM element for the page
     let g_canvas = null;
@@ -153,112 +155,6 @@
     ];
 
     //
-    // Constants
-    //
-    let Constants = {
-        // the length of time (seconds) before a step (physics update) is performed
-        timeStep: 1 / 60,
-
-        // the effective drawing area (this is scaled to the canvas dimensions)
-        fixedWidth: 1280,
-        fixedHeight: 720,
-
-        // background (clear) color for the screen
-        backgroundColor: "rgb(0,0,0)",
-
-        // the width and height of a cell (pixels)
-        cellSize: 32,
-
-        // background color of the game field (this is a slight blue)
-        fieldBackgroundColor: "rgb(0,12,48)",
-
-        // border color of the game field
-        fieldBorderColor: "rgb(255,255,255)",
-
-        // width of the game field (pixels)
-        fieldBorderWidth: 4,
-
-        // number of cell columns in the game field
-        fieldColumnCount: 10,
-
-        // number of cell rows in the game field
-        fieldRowCount: 22,
-
-        // the number of rows at the top of game field which are hidden from view (clipped)
-        fieldHiddenRowCount: 2,
-
-        // how long (seconds) does the row clearing animation last
-        fieldRowClearTime: 0.4,
-
-        // score multipled by level number when player clears a 1-4 lines
-        scoreSingle: 100,
-        scoreDouble: 300,
-        scoreTriple: 500,
-        scoreTetris: 800,
-
-        // scores multiplied by the number of rows the piece dropped
-        scoreSoftDrop: 1,
-        scoreHardDrop: 2,
-
-        // number of lines to clear before the level is incremented
-        linesPerLevel: 10,
-
-        // the level number won't go above this
-        maxLevel: 20,
-
-        // fall delay speeds for each level (starting at level 1) and speeding up
-        levelSpeeds: [0.8, 0.72, 0.63, 0.55, 0.47, 0.38, 0.3, 0.22, 0.13, 0.1, 0.08, 0.08, 0.08, 0.07, 0.07, 0.07, 0.05, 0.05, 0.05, 0.03],
-
-        // how long (seconds) until a piece is locked to the game field
-        lockDelay: 0.5,
-
-        // how long (seconds) to hold a key before it starts repeating
-        repeatDelay: 0.18,
-
-        // how long (seconds) for the period between key repeats
-        repeatPeriod: 0.08,
-
-        // which key codes need repeating when they're held
-        repeatedKeyCodes: [37, 39, 40],
-
-        // number of star particles in the background
-        starCount: 30,
-
-        // star particle velocity
-        starSpeed: 15,
-
-        // how long does a star particle last (seconds)
-        starLifespan: 30,
-
-        // how long does a start take to fade in and out (seconds)
-        starFadeTime: 5,
-
-        // how long does the warp effect (level change transition) last
-        warpTime: 3,
-
-        // fill style used to fade the background to white
-        whiteFaderColor: "rgb(180,180,180)",
-
-        // number of streak partices in the background during a warp effect
-        streakCount: 250,
-
-        // font used to draw large text in the game field (e.g. Game Over)
-        bigFieldFont: "110px Impact, Charcoal, sans-serif",
-        bigFieldFontSize: 110,
-
-        // font used for the Pause mode text
-        pauseFont: "150px Impact, Charcoal, sans-serif",
-        pauseFontSize: 150,
-
-        // font used to render scores and labels
-        scoreFont: "18px Lucida Console, Monaco, monospace",
-        scoreFontSize: 18,
-
-        // maximum number of sounds that can play at once
-        maxAudioChannels: 100,
-    };
-
-    //
     // Field
     // Stores the state of a game field (where pieces fall into and get locked down), handles its rendering and physics
     // Replays can also be ran inside a Field, which disables user input
@@ -352,11 +248,11 @@
                     if (cell != 0) {
                         let cellX = pieceX + x;
                         let cellY = pieceY + y;
-                        if ((cellX < 0) || (cellX >= Constants.fieldColumnCount) || (cellY < 0) || (cellY >= Constants.fieldRowCount)) {
+                        if ((cellX < 0) || (cellX >= Constants.FIELD_COLUMN_COUNT) || (cellY < 0) || (cellY >= Constants.FIELD_ROW_COUNT)) {
                             return true;
                         }
 
-                        let cellIndex = cellY * Constants.fieldColumnCount + cellX;
+                        let cellIndex = cellY * Constants.FIELD_COLUMN_COUNT + cellX;
                         if (m_cells[cellIndex] != 0) {
                             return true;
                         }
@@ -371,17 +267,17 @@
         this.draw = function (ctx) {
             ctx.save();
 
-            let fieldWidth = Constants.fieldColumnCount * this.cellScale;
-            let fieldHeight = (Constants.fieldRowCount - Constants.fieldHiddenRowCount) * this.cellScale;
+            let fieldWidth = Constants.FIELD_COLUMN_COUNT * this.cellScale;
+            let fieldHeight = (Constants.FIELD_ROW_COUNT - Constants.FIELD_HIDDEN_ROW_COUNT) * this.cellScale;
 
             // move origin to top-left of field
             ctx.translate(Math.floor(this.x), Math.floor(this.y));
 
             // draw field border
             ctx.beginPath();
-            ctx.rect(-Constants.fieldBorderWidth + 2, -Constants.fieldBorderWidth + 2, fieldWidth + Constants.fieldBorderWidth, fieldHeight + Constants.fieldBorderWidth);
-            ctx.lineWidth = Constants.fieldBorderWidth;
-            ctx.strokeStyle = Constants.fieldBorderColor;
+            ctx.rect(-Constants.FIELD_BORDER_WIDTH + 2, -Constants.FIELD_BORDER_WIDTH + 2, fieldWidth + Constants.FIELD_BORDER_WIDTH, fieldHeight + Constants.FIELD_BORDER_WIDTH);
+            ctx.lineWidth = Constants.FIELD_BORDER_WIDTH;
+            ctx.strokeStyle = Constants.FIELD_BORDER_COLOR;
             ctx.stroke();
 
             // define field clipping region
@@ -394,14 +290,14 @@
             ctx.globalAlpha = 0.5;
             ctx.beginPath();
             ctx.rect(0, 0, fieldWidth, fieldHeight);
-            ctx.fillStyle = Constants.fieldBackgroundColor;
+            ctx.fillStyle = Constants.FIELD_BACKGROUND_COLOR;
             ctx.fill();
             ctx.restore();
 
             // draws all the cells in the game field
-            for (let cellY = 0, visibleRowCount = Constants.fieldRowCount - Constants.fieldHiddenRowCount; cellY < visibleRowCount; cellY++) {
-                for (let cellX = 0; cellX < Constants.fieldColumnCount; cellX++) {
-                    let cellIndex = (cellY + Constants.fieldHiddenRowCount) * Constants.fieldColumnCount + cellX;
+            for (let cellY = 0, visibleRowCount = Constants.FIELD_ROW_COUNT - Constants.FIELD_HIDDEN_ROW_COUNT; cellY < visibleRowCount; cellY++) {
+                for (let cellX = 0; cellX < Constants.FIELD_COLUMN_COUNT; cellX++) {
+                    let cellIndex = (cellY + Constants.FIELD_HIDDEN_ROW_COUNT) * Constants.FIELD_COLUMN_COUNT + cellX;
                     let cell = m_cells[cellIndex];
 
                     if (cell != 0) {
@@ -431,27 +327,27 @@
             if (m_gameOver) {
                 ctx.save();
 
-                ctx.font = Constants.bigFieldFont;
+                ctx.font = Constants.BIG_FIELD_FONT;
                 let gameWidth = ctx.measureText("GAME").width;
                 let overWidth = ctx.measureText("OVER").width;
                 let gameX = fieldWidth / 2 - gameWidth / 2;
                 let overX = fieldWidth / 2 - overWidth / 2;
                 let gameOverY = this.cellScale * 6 + m_gameOverTextBounce;
 
-                let gameGradient = ctx.createLinearGradient(0, gameOverY - Constants.bigFieldFontSize, 0, gameOverY);
+                let gameGradient = ctx.createLinearGradient(0, gameOverY - Constants.BIG_FIELD_FONT_SIZE, 0, gameOverY);
                 gameGradient.addColorStop(0, "rgb(255,255,255)");
                 gameGradient.addColorStop(1, "rgb(211,129,39)");
                 ctx.fillStyle = gameGradient;
 
                 ctx.fillText("GAME", gameX, gameOverY);
-                ctx.translate(0, Constants.bigFieldFontSize);
+                ctx.translate(0, Constants.BIG_FIELD_FONT_SIZE);
                 ctx.fillText("OVER", overX, gameOverY);
 
                 ctx.strokeStyle = "#000";
                 ctx.lineWidth = 3;
-                ctx.translate(0, -Constants.bigFieldFontSize);
+                ctx.translate(0, -Constants.BIG_FIELD_FONT_SIZE);
                 ctx.strokeText("GAME", gameX, gameOverY);
-                ctx.translate(0, Constants.bigFieldFontSize);
+                ctx.translate(0, Constants.BIG_FIELD_FONT_SIZE);
                 ctx.strokeText("OVER", overX, gameOverY);
 
                 ctx.restore();
@@ -464,15 +360,15 @@
         this.drawScore = function (ctx) {
             let boxWidth = 103;
             let boxHeight = 160;
-            let fieldWidth = Constants.fieldColumnCount * this.cellScale;
-            let fieldHeight = (Constants.fieldRowCount - Constants.fieldHiddenRowCount) * this.cellScale;
+            let fieldWidth = Constants.FIELD_COLUMN_COUNT * this.cellScale;
+            let fieldHeight = (Constants.FIELD_ROW_COUNT - Constants.FIELD_HIDDEN_ROW_COUNT) * this.cellScale;
 
             // draws the left score box
             Helpers.drawWindow(ctx, this.x - boxWidth - 50, this.y + fieldHeight / 2 - boxHeight / 2, boxWidth, boxHeight, function () {
                 ctx.fillStyle = "#FFF";
                 ctx.strokeStyle = "rgb(82, 190, 223)";
                 ctx.lineWidth = 0.5;
-                ctx.font = Constants.scoreFont;
+                ctx.font = Constants.SCORE_FONT;
 
                 // TODO: Need to refactor this
 
@@ -488,7 +384,7 @@
 
                 // draw the "Score" label
                 ctx.save();
-                ctx.translate(8, 4 + Constants.scoreFontSize);
+                ctx.translate(8, 4 + Constants.SCORE_FONT_SIZE);
                 ctx.fillText("SCORE", 0, 0);
                 ctx.strokeText("SCORE", 0, 0);
                 ctx.restore();
@@ -497,13 +393,13 @@
                 ctx.save();
                 let scoreText = m_score.toString();
                 let scoreWidth = ctx.measureText(scoreText).width;
-                ctx.translate(boxWidth - 8 - scoreWidth, 4 + Constants.scoreFontSize * 2);
-                drawGradientText(scoreText, scoreWidth, Constants.scoreFontSize);
+                ctx.translate(boxWidth - 8 - scoreWidth, 4 + Constants.SCORE_FONT_SIZE * 2);
+                drawGradientText(scoreText, scoreWidth, Constants.SCORE_FONT_SIZE);
                 ctx.restore();
 
                 // draw the "Lines" label
                 ctx.save();
-                ctx.translate(8, 4 + Constants.scoreFontSize * 4);
+                ctx.translate(8, 4 + Constants.SCORE_FONT_SIZE * 4);
                 ctx.fillText("LINES", 0, 0);
                 ctx.strokeText("LINES", 0, 0);
                 ctx.restore();
@@ -512,13 +408,13 @@
                 ctx.save();
                 let linesText = m_lines.toString();
                 let linesWidth = ctx.measureText(linesText).width;
-                ctx.translate(boxWidth - 8 - linesWidth, 4 + Constants.scoreFontSize * 5);
-                drawGradientText(linesText, linesWidth, Constants.scoreFontSize);
+                ctx.translate(boxWidth - 8 - linesWidth, 4 + Constants.SCORE_FONT_SIZE * 5);
+                drawGradientText(linesText, linesWidth, Constants.SCORE_FONT_SIZE);
                 ctx.restore();
 
                 // draw the Level label
                 ctx.save();
-                ctx.translate(8, 4 + Constants.scoreFontSize * 7);
+                ctx.translate(8, 4 + Constants.SCORE_FONT_SIZE * 7);
                 ctx.fillText("LEVEL", 0, 0);
                 ctx.strokeText("LEVEL", 0, 0);
                 ctx.restore();
@@ -527,8 +423,8 @@
                 ctx.save();
                 let levelText = m_level.toString();
                 let levelWidth = ctx.measureText(levelText).width;
-                ctx.translate(boxWidth - 8 - levelWidth, 4 + Constants.scoreFontSize * 8);
-                drawGradientText(levelText, levelWidth, Constants.scoreFontSize);
+                ctx.translate(boxWidth - 8 - levelWidth, 4 + Constants.SCORE_FONT_SIZE * 8);
+                drawGradientText(levelText, levelWidth, Constants.SCORE_FONT_SIZE);
                 ctx.restore();
             });
 
@@ -540,10 +436,10 @@
                     ctx.fillStyle = "#FFF";
                     ctx.strokeStyle = "rgb(82, 190, 223)";
                     ctx.lineWidth = 0.5;
-                    ctx.font = Constants.scoreFont;
+                    ctx.font = Constants.SCORE_FONT;
 
                     ctx.save();
-                    ctx.translate(8, 4 + Constants.scoreFontSize);
+                    ctx.translate(8, 4 + Constants.SCORE_FONT_SIZE);
                     ctx.fillText("NEXT", 0, 0);
                     ctx.strokeText("NEXT", 0, 0);
                     ctx.restore();
@@ -551,7 +447,7 @@
                     // don't show next piece while the game is paused
                     if (g_pauseMode == 0) {
                         let offsetX = 24;
-                        let offsetY = Constants.scoreFontSize * 2;
+                        let offsetY = Constants.SCORE_FONT_SIZE * 2;
 
                         // fiddle with the piece offset for certain types of pieces
                         switch (m_nextPiece.typeIndex) {
@@ -566,7 +462,7 @@
                                 offsetY += 12;
                                 break;
                         }
-                        m_nextPiece.draw(ctx, Constants.cellSize, false, offsetX, offsetY);
+                        m_nextPiece.draw(ctx, Constants.CELL_SIZE, false, offsetX, offsetY);
                     }
                 });
             }
@@ -609,7 +505,7 @@
                 this.handlePieceUpdate();
 
                 // increment score for hard drop times the number of lines it fell
-                m_score += dropCount * Constants.scoreHardDrop;
+                m_score += dropCount * Constants.SCORE_HARD_DROP;
 
                 // reset the time until the piece is dropped due to gravity (this is probably unnecessary since we're already at the bottom but whatever)
                 m_activePieceFallTime = 0;
@@ -631,7 +527,7 @@
                 m_activePiece.cellX--;
 
                 // moving pieces resets the piece lock delay
-                m_activePieceLockTime = Constants.lockDelay;
+                m_activePieceLockTime = Constants.LOCK_DELAY;
 
                 // send Piece update to the server
                 this.handlePieceUpdate();
@@ -652,7 +548,7 @@
                 m_activePiece.cellX++;
 
                 // moving pieces resets the piece lock delay
-                m_activePieceLockTime = Constants.lockDelay;
+                m_activePieceLockTime = Constants.LOCK_DELAY;
 
                 // send Piece update to the server
                 this.handlePieceUpdate();
@@ -674,7 +570,7 @@
                 m_activePiece.rotation = (m_activePiece.rotation + 1) % 4;
 
                 // rotating resets the lock delay
-                m_activePieceLockTime = Constants.lockDelay;
+                m_activePieceLockTime = Constants.LOCK_DELAY;
 
                 // send updated rotation to the server
                 this.handlePieceUpdate();
@@ -703,7 +599,7 @@
                         m_activePiece.cellY += offsetY;
 
                         // rotation always resets the lock delay
-                        m_activePieceLockTime = Constants.lockDelay;
+                        m_activePieceLockTime = Constants.LOCK_DELAY;
 
                         // send updated location/rotation to the server
                         this.handlePieceUpdate();
@@ -729,10 +625,10 @@
                 m_activePieceFallTime = 0;
 
                 // increment score for each row the user drops the piece
-                m_score += Constants.scoreSoftDrop;
+                m_score += Constants.SCORE_SOFT_DROP;
 
                 // soft dropping a piece resets the lock delay
-                m_activePieceLockTime = Constants.lockDelay;
+                m_activePieceLockTime = Constants.LOCK_DELAY;
 
                 // notify server of new Piece location
                 this.handlePieceUpdate();
@@ -772,7 +668,7 @@
                                 m_activePiece.cellY = nextInstruction.y;
                                 m_activePiece.rotation = nextInstruction.rotation;
                                 m_activePieceFallTime = 0;
-                                m_activePieceLockTime = Constants.lockDelay;
+                                m_activePieceLockTime = Constants.LOCK_DELAY;
                                 this.updateGhostPiece();
                             }
                             else if (nextInstruction.cells) {
@@ -781,7 +677,7 @@
                                 m_score = nextInstruction.score;
                                 m_lines = nextInstruction.lines;
                                 m_level = nextInstruction.level;
-                                m_fallSpeed = Constants.levelSpeeds[m_level - 1];
+                                m_fallSpeed = Constants.LEVEL_SPEEDS[m_level - 1];
                             }
                         }
                         else {
@@ -814,7 +710,7 @@
                 m_rowClearTime -= step;
 
                 // normalizes the animation time from 0 to 1, when it hits 1 the animation is finished
-                let normalizedClearTime = 1 - m_rowClearTime / Constants.fieldRowClearTime
+                let normalizedClearTime = 1 - m_rowClearTime / Constants.FIELD_ROW_CLEAR_TIME
 
                 // when the animation is finished, rows above the cleared lines will fall down
                 let linesCleared = 0;
@@ -822,11 +718,11 @@
                     for (let i = 0; i < m_rowsToClear.length; i++) {
                         let y = m_rowsToClear[i] + i;
                         for (let y2 = y; y2 >= 0; y2--) {
-                            for (let x = 0; x < Constants.fieldColumnCount; x++) {
+                            for (let x = 0; x < Constants.FIELD_COLUMN_COUNT; x++) {
                                 if (y2 > 0) {
-                                    m_cells[y2 * Constants.fieldColumnCount + x] = m_cells[(y2 - 1) * Constants.fieldColumnCount + x];
+                                    m_cells[y2 * Constants.FIELD_COLUMN_COUNT + x] = m_cells[(y2 - 1) * Constants.FIELD_COLUMN_COUNT + x];
                                 } else {
-                                    m_cells[y2 * Constants.fieldColumnCount + x] = 0;
+                                    m_cells[y2 * Constants.FIELD_COLUMN_COUNT + x] = 0;
                                 }
                             }
                         }
@@ -844,43 +740,43 @@
 
                         switch (linesCleared) {
                             case 1:
-                                m_score += Constants.scoreSingle * m_level;
+                                m_score += Constants.SCORE_SINGLE_LINES * m_level;
                                 break;
                             case 2:
-                                m_score += Constants.scoreDouble * m_level;
+                                m_score += Constants.SCORE_DOUBLE_LINES * m_level;
                                 break;
                             case 3:
-                                m_score += Constants.scoreTriple * m_level;
+                                m_score += Constants.SCORE_TRIPLE_LINES * m_level;
                                 break;
                             case 4:
-                                m_score += Constants.scoreTetris * m_level;
+                                m_score += Constants.SCORE_TETRIS_LINES * m_level;
                                 break;
                         }
                     }
 
                     // increment level if needed
-                    let newLevel = Math.floor((m_lines + Constants.linesPerLevel) / Constants.linesPerLevel);
-                    if (newLevel > Constants.maxLevel) {
-                        newLevel = Constants.maxLevel;
+                    let newLevel = Math.floor((m_lines + Constants.LINES_PER_LEVEL) / Constants.LINES_PER_LEVEL);
+                    if (newLevel > Constants.MAX_LEVEL) {
+                        newLevel = Constants.MAX_LEVEL;
                     }
                     if (newLevel > m_level) {
                         // level was changed, get the new falling speed and start the background warp effect
                         m_level = newLevel;
-                        m_fallSpeed = Constants.levelSpeeds[m_level - 1];
+                        m_fallSpeed = Constants.LEVEL_SPEEDS[m_level - 1];
                         startWarpEffect();
                     }
                 }
                 else {
                     // play the row clearing animation, it will clear cells starting at the center of the row, and working to the edges
-                    let cellsRemoved = Math.round((Constants.fieldColumnCount / 2) * normalizedClearTime);
+                    let cellsRemoved = Math.round((Constants.FIELD_COLUMN_COUNT / 2) * normalizedClearTime);
                     for (let x = 0; x < cellsRemoved; x++) {
-                        let leftCol = Constants.fieldColumnCount / 2 - x - 1;
-                        let rightCol = Constants.fieldColumnCount / 2 + x;
+                        let leftCol = Constants.FIELD_COLUMN_COUNT / 2 - x - 1;
+                        let rightCol = Constants.FIELD_COLUMN_COUNT / 2 + x;
 
                         for (let rowIndex = 0; rowIndex < m_rowsToClear.length; rowIndex++) {
                             let y = m_rowsToClear[rowIndex];
-                            m_cells[leftCol + y * Constants.fieldColumnCount] = 0;
-                            m_cells[rightCol + y * Constants.fieldColumnCount] = 0;
+                            m_cells[leftCol + y * Constants.FIELD_COLUMN_COUNT] = 0;
+                            m_cells[rightCol + y * Constants.FIELD_COLUMN_COUNT] = 0;
                         }
                     }
                 }
@@ -890,7 +786,7 @@
                 // need a new piece
                 if (!m_replayMode && m_rowClearTime <= 0) {
                     /// ...but not until all the pending rows are cleared
-                    m_activePieceLockTime = Constants.lockDelay;
+                    m_activePieceLockTime = Constants.LOCK_DELAY;
                     m_activePiece = m_nextPiece;
                     m_nextPiece = new Piece(m_pieceBag.getNewPieceType());
 
@@ -926,11 +822,11 @@
                     this.handleFieldUpdate();
 
                     // locking piece may have triggered line clear
-                    for (let y = Constants.fieldRowCount - 1; y >= 0; y--) {
+                    for (let y = Constants.FIELD_ROW_COUNT - 1; y >= 0; y--) {
                         let lineFull = true;
 
-                        for (let x = 0; x < Constants.fieldColumnCount; x++) {
-                            if (m_cells[y * Constants.fieldColumnCount + x] == 0) {
+                        for (let x = 0; x < Constants.FIELD_COLUMN_COUNT; x++) {
+                            if (m_cells[y * Constants.FIELD_COLUMN_COUNT + x] == 0) {
                                 lineFull = false;
                                 break;
                             }
@@ -939,11 +835,11 @@
                         if (lineFull) {
                             // schedule this row index for clearing
                             m_rowsToClear.push(y);
-                            m_rowClearTime = Constants.fieldRowClearTime;
+                            m_rowClearTime = Constants.FIELD_ROW_CLEAR_TIME;
                         }
                     }
 
-                    if (m_rowClearTime == Constants.fieldRowClearTime) {
+                    if (m_rowClearTime == Constants.FIELD_ROW_CLEAR_TIME) {
                         Helpers.playSound(g_soundClear);
                     }
                 }
@@ -955,7 +851,7 @@
                     if (!this.doesPieceCollide(m_activePiece, 0 /*dx*/, 1 /*dy*/)) {
                         m_activePieceFallTime = 0;
                         m_activePiece.cellY++;
-                        m_activePieceLockTime = Constants.lockDelay;
+                        m_activePieceLockTime = Constants.LOCK_DELAY;
                     }
                 }
             }
@@ -964,11 +860,11 @@
         // initializes a newly created Field
         function init() {
             // cells are initially 0
-            let cellCount = Constants.fieldColumnCount * Constants.fieldRowCount;
+            let cellCount = Constants.FIELD_COLUMN_COUNT * Constants.FIELD_ROW_COUNT;
             for (let i = 0; i < cellCount; i++) {
                 m_cells[i] = 0;
             }
-            m_fallSpeed = Constants.levelSpeeds[m_level - 1];
+            m_fallSpeed = Constants.LEVEL_SPEEDS[m_level - 1];
             m_pieceBag = new PieceBag();
             m_nextPiece = new Piece(m_pieceBag.getNewPieceType());
         }
@@ -988,7 +884,7 @@
                     if (cell != 0) {
                         let cellX = m_activePiece.cellX + x;
                         let cellY = m_activePiece.cellY + y;
-                        let cellIndex = cellY * Constants.fieldColumnCount + cellX;
+                        let cellIndex = cellY * Constants.FIELD_COLUMN_COUNT + cellX;
                         m_cells[cellIndex] = cell;
                     }
                 }
@@ -1015,7 +911,7 @@
             m_replayMode = true;
 
             // set initial Field state for replay playback
-            let cellCount = Constants.fieldColumnCount * Constants.fieldRowCount;
+            let cellCount = Constants.FIELD_COLUMN_COUNT * Constants.FIELD_ROW_COUNT;
             for (let i = 0; i < cellCount; i++) {
                 m_cells[i] = 0;
             }
@@ -1025,7 +921,7 @@
             m_score = 0;
             m_level = 1;
             m_lines = 0;
-            m_fallSpeed = Constants.levelSpeeds[m_level - 1];
+            m_fallSpeed = Constants.LEVEL_SPEEDS[m_level - 1];
 
             // now waiting on the server for replay data
             m_loadingReplay = true;
@@ -1176,7 +1072,7 @@
                 ctx.translate(x, y);
             }
             else {
-                ctx.translate(this.cellX * cellScale, (this.cellY - Constants.fieldHiddenRowCount) * cellScale);
+                ctx.translate(this.cellX * cellScale, (this.cellY - Constants.FIELD_HIDDEN_ROW_COUNT) * cellScale);
             }
 
             let pieceCells = this.getCells();
@@ -1239,7 +1135,7 @@
 
         this.init = function () {
             this.typeIndex = Helpers.getRandInt(0, g_pieces.length - 1);
-            this.cellX = Constants.fieldColumnCount / 2 - 2;
+            this.cellX = Constants.FIELD_COLUMN_COUNT / 2 - 2;
         };
 
         this.init();
@@ -1450,7 +1346,7 @@
 
             // initialize audio channels
             g_audioChan = [];
-            for (let i = 0; i < Constants.maxAudioChannels; i++) {
+            for (let i = 0; i < Constants.MAX_AUDIO_CHANELS; i++) {
                 g_audioChan[i] = {
                     channel: new Audio(),
                     finished: -1,
@@ -1484,14 +1380,14 @@
         ctx.save();
 
         // clear the whole drawing area to a solid color
-        ctx.fillStyle = Constants.backgroundColor;
+        ctx.fillStyle = Constants.BACKGROUND_COLOR;
         ctx.fillRect(0, 0, g_width, g_height);
 
         // set origin to the center of the drawing area
         ctx.translate(g_width / 2, g_height / 2);
 
         // normalize the warp time animation from 0 to 1 (animation is finished when it hits 1)
-        let warpTimeNormalized = 1 - (g_warpTime / Constants.warpTime);
+        let warpTimeNormalized = 1 - (g_warpTime / Constants.WARP_TIME);
 
         // calculate the size of the background effect (the smallest of the two dimensions that make up the drawing area)
         let minDim = Math.min(g_width, g_height);
@@ -1519,14 +1415,14 @@
                 ctx.translate(star.x, star.y);
                 ctx.scale(star.scale, star.scale);
 
-                let lifeLeft = Constants.starLifespan - star.life;
-                if (star.life < Constants.starFadeTime) {
+                let lifeLeft = Constants.STAR_LIFESPAN - star.life;
+                if (star.life < Constants.STAR_FADE_TIME) {
                     // fades the star in at the beginning of its life
-                    ctx.globalAlpha = star.life / Constants.starFadeTime;
+                    ctx.globalAlpha = star.life / Constants.STAR_FADE_TIME;
                 }
-                if (lifeLeft < Constants.starFadeTime) {
+                if (lifeLeft < Constants.STAR_FADE_TIME) {
                     // fades the star out at the end of its life
-                    ctx.globalAlpha = lifeLeft / Constants.starFadeTime;
+                    ctx.globalAlpha = lifeLeft / Constants.STAR_FADE_TIME;
                 }
 
                 // offset image by its dimension so its centered properly
@@ -1541,13 +1437,13 @@
                 }
                 else {
                     // apply star velocity by multiplying its direction vector by its speed times the current physics step
-                    star.x += star.dx * Constants.starSpeed * step * star.speed;
-                    star.y += star.dy * Constants.starSpeed * step * star.speed;
+                    star.x += star.dx * Constants.STAR_SPEED * step * star.speed;
+                    star.y += star.dy * Constants.STAR_SPEED * step * star.speed;
                 }
                 star.life += step * star.speed;
 
                 // if star is dead, spawn a center star at the center
-                if (star.life > Constants.starLifespan) {
+                if (star.life > Constants.STAR_LIFESPAN) {
                     let angle = Helpers.getRand(0, 2 * Math.PI);
                     star.x = 0;
                     star.y = 0;
@@ -1623,7 +1519,7 @@
                 }
 
                 // render the white fade-out effect
-                ctx.fillStyle = Constants.whiteFaderColor;
+                ctx.fillStyle = Constants.WHITE_FADER_COLOR;
                 ctx.fillRect(-g_width / 2, -g_height / 2, g_width, g_height);
                 ctx.restore();
             }
@@ -1648,7 +1544,7 @@
         if (g_cellStripImage) {
             let offset = g_cellStripOffset[cellColor];
 
-            ctx.drawImage(g_cellStripImage, offset, 0, Constants.cellSize, Constants.cellSize, x, y, cellScale, cellScale);
+            ctx.drawImage(g_cellStripImage, offset, 0, Constants.CELL_SIZE, Constants.CELL_SIZE, x, y, cellScale, cellScale);
         }
     }
 
@@ -1678,19 +1574,19 @@
         // if paused, render the pause text
         if (g_pauseMode > 0) {
             ctx.save();
-            ctx.font = Constants.pauseFont;
+            ctx.font = Constants.PAUSE_FONT;
             let pauseWidth = ctx.measureText("PAUSE").width;
             let textX = g_width / 2 - pauseWidth / 2;
-            let textY = g_height / 2 + Constants.pauseFontSize / 2 - 16;
+            let textY = g_height / 2 + Constants.PAUSE_FONT_SIZE / 2 - 16;
 
             let scale = Math.sin(g_pauseTextPulse * 10) * 0.05 + 1;
             g_pauseTextPulse += step;
 
-            ctx.translate(textX + pauseWidth / 2, textY - Constants.pauseFontSize / 2);
+            ctx.translate(textX + pauseWidth / 2, textY - Constants.PAUSE_FONT_SIZE / 2);
             ctx.scale(scale, scale);
-            ctx.translate(-pauseWidth / 2, Constants.pauseFontSize / 2);
+            ctx.translate(-pauseWidth / 2, Constants.PAUSE_FONT_SIZE / 2);
 
-            let gradient = ctx.createLinearGradient(0, -Constants.pauseFontSize, 0, 0);
+            let gradient = ctx.createLinearGradient(0, -Constants.PAUSE_FONT_SIZE, 0, 0);
             gradient.addColorStop(0, "rgb(255,255,255)");
             gradient.addColorStop(1, "rgb(218,188,8)");
             ctx.fillStyle = gradient;
@@ -1821,10 +1717,10 @@
                 key.duration += step;
 
                 // if key has been pressed long enough and repeats are supported for this key, start triggering repeats
-                if (key.duration > Constants.repeatDelay && (Constants.repeatedKeyCodes.indexOf(keyCode) > -1)) {
+                if (key.duration > Constants.REPEAT_DELAY && (Constants.REPEATED_KEY_CODES.indexOf(keyCode) > -1)) {
                     if (key.repeatStep <= 0) {
                         // time until another repeat happens
-                        key.repeatStep = Constants.repeatPeriod;
+                        key.repeatStep = Constants.REPEAT_PERIOD;
                     }
                     else {
                         // repeat is ready, trigger the event
@@ -1876,7 +1772,7 @@
 
     function resetStars() {
         g_stars = [];
-        for (let i = 0; i < Constants.starCount; i++) {
+        for (let i = 0; i < Constants.STAR_COUNT; i++) {
             let angle = Helpers.getRand(0, 2 * Math.PI);
             let dx = Math.cos(angle);
             let dy = Math.sin(angle);
@@ -1891,9 +1787,9 @@
             };
 
             // stars spawn at a random place along their life span so they're not all clumped together at the center
-            let life = Helpers.getRand(0, Constants.starLifespan);
-            newStar.x += dx * life * Constants.starSpeed;
-            newStar.y += dy * life * Constants.starSpeed;
+            let life = Helpers.getRand(0, Constants.STAR_LIFESPAN);
+            newStar.x += dx * life * Constants.STAR_SPEED;
+            newStar.y += dy * life * Constants.STAR_SPEED;
             newStar.life = life;
 
             g_stars.push(newStar);
@@ -1903,11 +1799,11 @@
     function resizeCanvas() {
         if (g_canvas) {
             g_width = window.innerWidth;
-            g_height = g_width * (Constants.fixedHeight / Constants.fixedWidth);
+            g_height = g_width * (Constants.FIXED_HEIGHT / Constants.FIXED_WIDTH);
 
             if (g_height > window.innerHeight) {
                 g_height = window.innerHeight;
-                g_width = g_height * (Constants.fixedWidth / Constants.fixedHeight)
+                g_width = g_height * (Constants.FIXED_WIDTH / Constants.FIXED_HEIGHT)
             }
 
             g_canvas.width = g_width;
@@ -1919,18 +1815,18 @@
             g_canvas.style.top = (window.innerHeight / 2 - g_height / 2) + "px";
 
             if (g_activeField) {
-                g_activeField.cellScale = Constants.cellSize;
-                let fieldWidth = Constants.fieldColumnCount * g_activeField.cellScale;
-                let fieldHeight = (Constants.fieldRowCount - Constants.fieldHiddenRowCount) * g_activeField.cellScale;
+                g_activeField.cellScale = Constants.CELL_SIZE;
+                let fieldWidth = Constants.FIELD_COLUMN_COUNT * g_activeField.cellScale;
+                let fieldHeight = (Constants.FIELD_ROW_COUNT - Constants.FIELD_HIDDEN_ROW_COUNT) * g_activeField.cellScale;
                 //if ((g_width < fieldWidth) || (g_height < fieldHeight)) {
                 //g_activeField.cellScale = 16;
                 //}
                 //fieldWidth = Constants.fieldColumnCount * g_activeField.cellScale;
                 //fieldHeight = (Constants.fieldRowCount - Constants.fieldHiddenRowCount) * g_activeField.cellScale;
-                g_scaleX = g_width / Constants.fixedWidth;
-                g_scaleY = g_height / Constants.fixedHeight;
-                g_width = Constants.fixedWidth;
-                g_height = Constants.fixedHeight;
+                g_scaleX = g_width / Constants.FIXED_WIDTH;
+                g_scaleY = g_height / Constants.FIXED_HEIGHT;
+                g_width = Constants.FIXED_WIDTH;
+                g_height = Constants.FIXED_HEIGHT;
 
                 if (window.location.hash == "#multifield") {
                     for (let i = 0, len = g_fields.length; i < len; i++) {
@@ -1951,20 +1847,20 @@
     function runGame(step) {
         g_stepTime += step;
 
-        while (g_stepTime > Constants.timeStep) {
-            g_stepTime -= Constants.timeStep;
+        while (g_stepTime > Constants.TIME_STEP) {
+            g_stepTime -= Constants.TIME_STEP;
 
-            updateInputState(Constants.timeStep);
+            updateInputState(Constants.TIME_STEP);
 
             if (g_offlineMode || (g_activeConnection && g_activeConnection.isOpen())) {
                 g_statusText = "";
 
                 if (g_pauseMode == 0) {
-                    g_elapsedTime += Constants.timeStep;
+                    g_elapsedTime += Constants.TIME_STEP;
 
                     for (let i = 0, len = g_fields.length; i < len; i++) {
                         let field = g_fields[i];
-                        field.update(Constants.timeStep * g_timeMultiply);
+                        field.update(Constants.TIME_STEP * g_timeMultiply);
                     }
                 }
 
@@ -1977,12 +1873,12 @@
 
     // starts playing the warp animation (happens on level change)
     function startWarpEffect() {
-        g_warpTime = Constants.warpTime;
+        g_warpTime = Constants.WARP_TIME;
         g_warpStarGravity = true;
         g_warpStreaks = [];
 
         // initialize the collection of streak particles
-        for (let i = 0; i < Constants.streakCount; i++) {
+        for (let i = 0; i < Constants.STREAK_COUNT; i++) {
             let angle = Helpers.getRand(0, 2 * Math.PI);
             let dx = Math.cos(angle);
             let dy = Math.sin(angle);
