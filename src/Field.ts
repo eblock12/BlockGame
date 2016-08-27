@@ -189,7 +189,7 @@ export default class Field {
         let fieldHeight = (Constants.FIELD_ROW_COUNT - Constants.FIELD_HIDDEN_ROW_COUNT) * this._cellScale;
 
         // draws the left score box
-        Helpers.Render.drawWindow(ctx, this._x - boxWidth - 50, this._y + fieldHeight / 2 - boxHeight / 2, boxWidth, boxHeight, function () {
+        Helpers.Render.drawWindow(ctx, this._x - boxWidth - 50, this._y + fieldHeight / 2 - boxHeight / 2, boxWidth, boxHeight, () => {
             ctx.fillStyle = "#FFF";
             ctx.strokeStyle = "rgb(82, 190, 223)";
             ctx.lineWidth = 0.5;
@@ -257,7 +257,7 @@ export default class Field {
         if (this._nextPiece) {
             boxWidth = 144;
             boxHeight = 150;
-            Helpers.Render.drawWindow(ctx, this._x + 50 + fieldWidth, this._y + fieldHeight / 2 - boxHeight / 2, boxWidth, boxHeight, function () {
+            Helpers.Render.drawWindow(ctx, this._x + 50 + fieldWidth, this._y + fieldHeight / 2 - boxHeight / 2, boxWidth, boxHeight, () => {
                 ctx.fillStyle = "#FFF";
                 ctx.strokeStyle = "rgb(82, 190, 223)";
                 ctx.lineWidth = 0.5;

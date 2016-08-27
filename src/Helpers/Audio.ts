@@ -2,7 +2,8 @@ import Page from '../Page';
 
 export default class AudioHelper {
     public static playSound(sound): void {
-        if (!sound || !sound.buffered) {
+        return; // sound temporarily disabled
+        /*if (!sound || !sound.buffered) {
             // sound isn't ready, don't play
             return;
         }
@@ -26,6 +27,6 @@ export default class AudioHelper {
                 audioChan.channel.play();
                 break;
             }
-        }
+        }*/
     }
 }

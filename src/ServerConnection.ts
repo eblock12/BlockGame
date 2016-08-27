@@ -13,10 +13,10 @@ export default class ServerConnection {
         if (!this._state.offlineMode && ("WebSocket" in window)) {
             this._socket = new WebSocket(url);
 
-            this._socket.onopen = this._onSocketOpen;
-            this._socket.onmessage = this._onSocketMessage;
-            this._socket.onclose = this._onSocketClose;
-            this._socket.onerror = this._onSocketError;
+            this._socket.onopen = (evt: Event) => this._onSocketOpen(evt);
+            this._socket.onmessage = (evt: MessageEvent) => this._onSocketMessage(evt);
+            this._socket.onclose = (evt: CloseEvent) => this._onSocketClose(evt);
+            this._socket.onerror = (evt: Event) => this._onSocketError(evt);
         }
         else {
             // WebSockets aren't supported so just go to offline mode

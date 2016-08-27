@@ -314,7 +314,7 @@ export default class Page implements INetworkState {
 
     /** Called when the browser wants to render a new animation frame for this Page */
     private _drawFrame(frameTime: number) {
-        window.requestAnimationFrame(this._drawFrame);
+        window.requestAnimationFrame((step: number) => this._drawFrame(step));
 
         let ctx = this.canvas.getContext("2d");
         if (!ctx || (typeof frameTime === "undefined")) {
@@ -483,19 +483,19 @@ export default class Page implements INetworkState {
 
             // load image resources from the server
             let img = new Image();
-            img.onload = function () {
+            img.onload = () => {
                 this.cellStripImage = img;
             };
             img.src = "img/tetris_cells.png";
 
             let imgVortex = new Image();
-            imgVortex.onload = function () {
+            imgVortex.onload = () => {
                 this.vortexImage = imgVortex;
             };
             imgVortex.src = "img/vortex.png";
 
             let starImage = new Image();
-            starImage.onload = function () {
+            starImage.onload = () => {
                 this.starImage = starImage;
             };
             starImage.src = "img/star.png";
