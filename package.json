@@ -1,0 +1,11 @@
+{
+  "name": "blockgame",
+  "version": "1.0.0",
+  "description": "A game about falling blocks",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
