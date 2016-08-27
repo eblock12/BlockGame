@@ -1,3 +1,9 @@
 {
-    "files.eol": "\n"
+    "files.eol": "\n",
+    "search.exclude": {
+        "**/.git": true,
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/lib": true
+    }
 }
