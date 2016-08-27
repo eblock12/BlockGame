@@ -1433,19 +1433,19 @@
             img.onload = function () {
                 g_cellStripImage = img;
             };
-            img.src = "tetris_cells.png";
+            img.src = "img/tetris_cells.png";
 
             let imgVortex = new Image();
             imgVortex.onload = function () {
                 g_vortexImage = imgVortex;
             };
-            imgVortex.src = "vortex.png";
+            imgVortex.src = "img/vortex.png";
 
             let starImage = new Image();
             starImage.onload = function () {
                 g_starImage = starImage;
             };
-            starImage.src = "star.png";
+            starImage.src = "img/star.png";
 
 
             // initialize audio channels
