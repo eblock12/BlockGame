@@ -1,62 +1,62 @@
 (function () {
     // canvas DOM element for the page
-    var g_canvas = null;
+    let g_canvas = null;
 
     // width/height of the effective drawing area (this is normally fixed to 1280x720)
-    var g_width = 0;
-    var g_height = 0;
+    let g_width = 0;
+    let g_height = 0;
 
     // multipliers to scale the drawing area to the full dimensions of the canvas (updated on window resize)
-    var g_scaleX = 1;
-    var g_scaleY = 1;
+    let g_scaleX = 1;
+    let g_scaleY = 1;
 
     // timestamp of the last time of a frame was drawn (milliseconds)
-    var g_lastFrameTime = 0;
+    let g_lastFrameTime = 0;
 
     // time accumulated (seconds) since the last step (game/physics update) was performed
     // when this hits Constants.stepTime, we decrement and do physics updates until its exhausted
-    var g_stepTime = 0;
+    let g_stepTime = 0;
 
     // time since the game was started (seconds)
-    var g_elapsedTime = 0;
+    let g_elapsedTime = 0;
 
     // time multiplier applied to Field physics updates (1 is normal speed)
-    var g_timeMultiply = 1;
+    let g_timeMultiply = 1;
 
     // stores the state of keys, if they're pressed and for how long
     // maps KeyCode to state object
-    var g_keyState = {};
+    let g_keyState = {};
 
     // collection of Fields that are being updated/renderered, normally there's just one, but there could be more
     // to enable multiplayer
-    var g_fields = [];
+    let g_fields = [];
 
     // the current Field that the player is controlling
-    var g_activeField;
+    let g_activeField;
 
     // the amount of "pauseness", when its 0 the game is unpaused
-    var g_pauseMode = 0;
+    let g_pauseMode = 0;
 
     // toggles user-controlled pausing
-    var g_userPauseMode = false;
+    let g_userPauseMode = false;
 
     // animates the pause text scaling effect
-    var g_pauseTextPulse = 0;
+    let g_pauseTextPulse = 0;
 
     // the current ServerConnection that relays state updates to the server
-    var g_activeConnection = null;
+    let g_activeConnection = null;
 
     // set to true to enable sound effects
-    var g_enableAudio = false;
+    let g_enableAudio = false;
 
     // if true then don't try to connect to the server
-    var g_offlineMode = true;
+    let g_offlineMode = true;
 
     // Composite image of all the possible cell colors
-    var g_cellStripImage = null;
+    let g_cellStripImage = null;
 
     // lookup table for each color's X offset within the cell strip image
-    var g_cellStripOffset = [
+    let g_cellStripOffset = [
         224,    // 0:empty
         32,     // 1:red
         192,    // 2:magenta
@@ -68,43 +68,43 @@
     ];
 
     // background image of the spinny blue space vortex
-    var g_vortexImage = null;
+    let g_vortexImage = null;
 
     // spin angle of the background vortex
-    var g_vortexSpin = 0;
+    let g_vortexSpin = 0;
 
     // image used by the star particles in the background
-    var g_starImage = null;
+    let g_starImage = null;
 
     // collection of star particles
-    var g_stars = [];
+    let g_stars = [];
 
     // countsdown the warp background effect (happens on level change), when it reaches 0 the effect is over
-    var g_warpTime = 0;
+    let g_warpTime = 0;
 
     // collection of "streak" particles for the warp effect
-    var g_warpStreaks = [];
+    let g_warpStreaks = [];
 
     // when true, the star particles are pulled into the vortex (center of screen)
-    var g_warpStarGravity = false;
+    let g_warpStarGravity = false;
 
     // when this is set to a string, it gets overlayed on top of the screen
-    var g_statusText = null;
+    let g_statusText = null;
 
     // Audio channels
-    var g_audioChan = [];
+    let g_audioChan = [];
 
     // Sound effects
-    var g_soundRotate = null;
-    var g_soundHit = null;
-    var g_soundClear = null;
-    var g_soundShift = null;
-    var g_soundWarp = null;
-    var g_soundGameOver = null;
-    var g_soundPause = null;
+    let g_soundRotate = null;
+    let g_soundHit = null;
+    let g_soundClear = null;
+    let g_soundShift = null;
+    let g_soundWarp = null;
+    let g_soundGameOver = null;
+    let g_soundPause = null;
 
     // stores the cell layout of each possible piece, for all 4 possible rotations, is piece is stored in a 4x4 grid
-    var g_pieces = [];
+    let g_pieces = [];
     g_pieces[0] = [[0, 0, 0, 0, 4, 4, 4, 4, 0, 0, 0, 0, 0, 0, 0, 0],
                    [0, 0, 4, 0, 0, 0, 4, 0, 0, 0, 4, 0, 0, 0, 4, 0],
                    [0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 4, 4, 0, 0, 0, 0],
@@ -137,7 +137,7 @@
     // Kick tables allow some play in the piece location when the user is rotating it
     // http://www.tetrisconcept.net/wiki/SRS#Wall_Kicks
     // table for J, L, S, T, Z shaped pieces
-    g_wallKickTable = [
+    let g_wallKickTable = [
         [[-1, 0], [-1, 1], [0, -2], [-1, -2]], // O->R
         [[1, 0], [1, -1], [0, 2], [1, 2]],     // R->2
         [[1, 0], [1, 1], [0, -2], [1, -2]],    // 2->L
@@ -145,7 +145,7 @@
     ];
 
     // alternate table for "I" shaped pieces
-    g_wallKickTableAlt = [
+    let g_wallKickTableAlt = [
         [[-2, 0], [1, 0], [-2, -1], [1, 2]], // O->R
         [[-1, 0], [2, 0], [-1, 2], [2, -1]], // R->2
         [[2, 0], [-1, 0], [2, 1], [-1, -2]], // 2->L
@@ -155,7 +155,7 @@
     //
     // Constants
     //
-    var Constants = {
+    let Constants = {
         // the length of time (seconds) before a step (physics update) is performed
         timeStep: 1 / 60,
 
@@ -263,67 +263,67 @@
     // Stores the state of a game field (where pieces fall into and get locked down), handles its rendering and physics
     // Replays can also be ran inside a Field, which disables user input
     //
-    var Field = function () {
+    let Field = function () {
         // stores the colors of all the cells in the Field (width * height)
-        var m_cells = [];
+        let m_cells = [];
 
         // stores a collection of row indices that need to be cleared
-        var m_rowsToClear = [];
+        let m_rowsToClear = [];
 
         // when this is non-zero, an animation plays to clear the rows in m_rowsToClear, the animation is finished when it reaches 0
-        var m_rowClearTime = 0;
+        let m_rowClearTime = 0;
 
         // the piece that is currently falling in this Field
-        var m_activePiece = null;
+        let m_activePiece = null;
 
         // bag of shuffled pieces to select the next piece from
-        var m_pieceBag = null;
+        let m_pieceBag = null;
 
         // the number of seconds remaining until the piece falls by gravity
-        var m_activePieceFallTime = 0;
+        let m_activePieceFallTime = 0;
 
         // the number of seconds remaining until the piece is locked to the game Field
-        var m_activePieceLockTime = 0;
+        let m_activePieceLockTime = 0;
 
         // the next piece that will spawn after the current piece is locked
-        var m_nextPiece = null;
+        let m_nextPiece = null;
 
         // a transparent piece that indicates where a piece will end up after a hard drop
-        var m_ghostPiece = null;
+        let m_ghostPiece = null;
 
         // the current speed is a piece is falling at (seconds its dropped again)
-        var m_fallspeed;
+        let m_fallSpeed;
 
         // the level number
-        var m_level = 1;
+        let m_level = 1;
 
         // the player's current score in this Field
-        var m_score = 0;
+        let m_score = 0;
 
         // the number of lines that have been cleared
-        var m_lines = 0;
+        let m_lines = 0;
 
         // when this is true, no new pieces are spawned and the game over text is displayed
-        var m_gameOver = false;
+        let m_gameOver = false;
 
         // game over text animation state
-        var m_gameOverTextBounce = 0;
-        var m_gameOverTextBounceStep = 0.65;
+        let m_gameOverTextBounce = 0;
+        let m_gameOverTextBounceStep = 0.65;
 
         // when this is true we're playing back a replay and not responding to player input
-        var m_replayMode = false;
+        let m_replayMode = false;
 
         // when this is true we're waiting on the server to send replay data
-        var m_loadingReplay = false;
+        let m_loadingReplay = false;
 
         // stores the array of instructions that make of the Replay data
-        var m_replayInstructions = [];
+        let m_replayInstructions = [];
 
         // the number of seconds elapsed in the current replay
-        var m_replayTime = 0;
+        let m_replayTime = 0;
 
         // the current instruction pointer within the replay
-        var m_replayIndex = 0;
+        let m_replayIndex = 0;
 
         // pixel location of this game Field within the canvas
         this.x = 0;
@@ -338,25 +338,25 @@
                 return true;
             }
 
-            var pieceX = dx ? piece.cellX + dx : piece.cellX;
-            var pieceY = dy ? piece.cellY + dy : piece.cellY;
-            var pieceRotation = drotation ? (piece.rotation + drotation) % 4 : piece.rotation;
-            var pieceIndex = piece.typeIndex;
+            let pieceX = dx ? piece.cellX + dx : piece.cellX;
+            let pieceY = dy ? piece.cellY + dy : piece.cellY;
+            let pieceRotation = drotation ? (piece.rotation + drotation) % 4 : piece.rotation;
+            let pieceIndex = piece.typeIndex;
 
-            var pieceCells = g_pieces[pieceIndex][pieceRotation];
+            let pieceCells = g_pieces[pieceIndex][pieceRotation];
 
-            for (var y = 0; y < 4; y++) {
-                for (var x = 0; x < 4; x++) {
-                    var cell = pieceCells[y * 4 + x];
+            for (let y = 0; y < 4; y++) {
+                for (let x = 0; x < 4; x++) {
+                    let cell = pieceCells[y * 4 + x];
 
                     if (cell != 0) {
-                        var cellX = pieceX + x;
-                        var cellY = pieceY + y;
+                        let cellX = pieceX + x;
+                        let cellY = pieceY + y;
                         if ((cellX < 0) || (cellX >= Constants.fieldColumnCount) || (cellY < 0) || (cellY >= Constants.fieldRowCount)) {
                             return true;
                         }
 
-                        var cellIndex = cellY * Constants.fieldColumnCount + cellX;
+                        let cellIndex = cellY * Constants.fieldColumnCount + cellX;
                         if (m_cells[cellIndex] != 0) {
                             return true;
                         }
@@ -371,8 +371,8 @@
         this.draw = function (ctx) {
             ctx.save();
 
-            var fieldWidth = Constants.fieldColumnCount * this.cellScale;
-            var fieldHeight = (Constants.fieldRowCount - Constants.fieldHiddenRowCount) * this.cellScale;
+            let fieldWidth = Constants.fieldColumnCount * this.cellScale;
+            let fieldHeight = (Constants.fieldRowCount - Constants.fieldHiddenRowCount) * this.cellScale;
 
             // move origin to top-left of field
             ctx.translate(Math.floor(this.x), Math.floor(this.y));
@@ -399,10 +399,10 @@
             ctx.restore();
 
             // draws all the cells in the game field
-            for (var cellY = 0, visibleRowCount = Constants.fieldRowCount - Constants.fieldHiddenRowCount; cellY < visibleRowCount; cellY++) {
-                for (var cellX = 0; cellX < Constants.fieldColumnCount; cellX++) {
-                    var cellIndex = (cellY + Constants.fieldHiddenRowCount) * Constants.fieldColumnCount + cellX;
-                    var cell = m_cells[cellIndex];
+            for (let cellY = 0, visibleRowCount = Constants.fieldRowCount - Constants.fieldHiddenRowCount; cellY < visibleRowCount; cellY++) {
+                for (let cellX = 0; cellX < Constants.fieldColumnCount; cellX++) {
+                    let cellIndex = (cellY + Constants.fieldHiddenRowCount) * Constants.fieldColumnCount + cellX;
+                    let cell = m_cells[cellIndex];
 
                     if (cell != 0) {
                         drawCellFromStrip(ctx, Math.floor(cellX * this.cellScale), Math.floor(cellY * this.cellScale), cell, this.cellScale);
@@ -432,13 +432,13 @@
                 ctx.save();
 
                 ctx.font = Constants.bigFieldFont;
-                var gameWidth = ctx.measureText("GAME").width;
-                var overWidth = ctx.measureText("OVER").width;
-                var gameX = fieldWidth / 2 - gameWidth / 2;
-                var overX = fieldWidth / 2 - overWidth / 2;
-                var gameOverY = this.cellScale * 6 + m_gameOverTextBounce;
+                let gameWidth = ctx.measureText("GAME").width;
+                let overWidth = ctx.measureText("OVER").width;
+                let gameX = fieldWidth / 2 - gameWidth / 2;
+                let overX = fieldWidth / 2 - overWidth / 2;
+                let gameOverY = this.cellScale * 6 + m_gameOverTextBounce;
 
-                var gameGradient = ctx.createLinearGradient(0, gameOverY - Constants.bigFieldFontSize, 0, gameOverY);
+                let gameGradient = ctx.createLinearGradient(0, gameOverY - Constants.bigFieldFontSize, 0, gameOverY);
                 gameGradient.addColorStop(0, "rgb(255,255,255)");
                 gameGradient.addColorStop(1, "rgb(211,129,39)");
                 ctx.fillStyle = gameGradient;
@@ -462,10 +462,10 @@
 
         // draws the score boxes on the left and right of the Field
         this.drawScore = function (ctx) {
-            var boxWidth = 103;
-            var boxHeight = 160;
-            var fieldWidth = Constants.fieldColumnCount * this.cellScale;
-            var fieldHeight = (Constants.fieldRowCount - Constants.fieldHiddenRowCount) * this.cellScale;
+            let boxWidth = 103;
+            let boxHeight = 160;
+            let fieldWidth = Constants.fieldColumnCount * this.cellScale;
+            let fieldHeight = (Constants.fieldRowCount - Constants.fieldHiddenRowCount) * this.cellScale;
 
             // draws the left score box
             Helpers.drawWindow(ctx, this.x - boxWidth - 50, this.y + fieldHeight / 2 - boxHeight / 2, boxWidth, boxHeight, function () {
@@ -478,7 +478,7 @@
 
                 // draws score text
                 function drawGradientText(text, width, height) {
-                    var gradient = ctx.createLinearGradient(0, -height, 0, 0);
+                    let gradient = ctx.createLinearGradient(0, -height, 0, 0);
                     gradient.addColorStop(0, "rgb(188,235,188)");
                     gradient.addColorStop(1, "rgb(82,188,82)");
                     ctx.fillStyle = gradient;
@@ -495,8 +495,8 @@
 
                 // draw the actual Score
                 ctx.save();
-                var scoreText = m_score.toString();
-                var scoreWidth = ctx.measureText(scoreText).width;
+                let scoreText = m_score.toString();
+                let scoreWidth = ctx.measureText(scoreText).width;
                 ctx.translate(boxWidth - 8 - scoreWidth, 4 + Constants.scoreFontSize * 2);
                 drawGradientText(scoreText, scoreWidth, Constants.scoreFontSize);
                 ctx.restore();
@@ -510,8 +510,8 @@
 
                 // draw the actual Lines
                 ctx.save();
-                var linesText = m_lines.toString();
-                var linesWidth = ctx.measureText(linesText).width;
+                let linesText = m_lines.toString();
+                let linesWidth = ctx.measureText(linesText).width;
                 ctx.translate(boxWidth - 8 - linesWidth, 4 + Constants.scoreFontSize * 5);
                 drawGradientText(linesText, linesWidth, Constants.scoreFontSize);
                 ctx.restore();
@@ -525,8 +525,8 @@
 
                 // draw the actual Level
                 ctx.save();
-                var levelText = m_level.toString();
-                var levelWidth = ctx.measureText(levelText).width;
+                let levelText = m_level.toString();
+                let levelWidth = ctx.measureText(levelText).width;
                 ctx.translate(boxWidth - 8 - levelWidth, 4 + Constants.scoreFontSize * 8);
                 drawGradientText(levelText, levelWidth, Constants.scoreFontSize);
                 ctx.restore();
@@ -550,8 +550,8 @@
 
                     // don't show next piece while the game is paused
                     if (g_pauseMode == 0) {
-                        var offsetX = 24;
-                        var offsetY = Constants.scoreFontSize * 2;
+                        let offsetX = 24;
+                        let offsetY = Constants.scoreFontSize * 2;
 
                         // fiddle with the piece offset for certain types of pieces
                         switch (m_nextPiece.typeIndex) {
@@ -590,7 +590,7 @@
         // performs a hard drop (piece is dropped until it collides)
         this.hardDrop = function () {
             // keep track of how far the piece fell
-            var dropCount = 0;
+            let dropCount = 0;
 
             // ignore input during replays
             if (m_replayMode) {
@@ -684,16 +684,16 @@
                 // test for wall kicks, allows the piece to be shifted in location slightly to permit the rotation to happen
 
                 // for "I" shaped pieces, use a special lookup table
-                var wallKickTable = (m_activePiece.typeIndex == 0) ? g_wallKickTableAlt : g_wallKickTable;
+                let wallKickTable = (m_activePiece.typeIndex == 0) ? g_wallKickTableAlt : g_wallKickTable;
 
                 // get the appropiate wall kick table for the current rotation
-                var stepTable = wallKickTable[m_activePiece.rotation];
+                let stepTable = wallKickTable[m_activePiece.rotation];
 
                 // each rotation tests for 4 possible steps
-                for (var step = 0; step < 4; step++) {
+                for (let step = 0; step < 4; step++) {
                     // each step has a X and Y offset
-                    var offsetX = stepTable[step][0];
-                    var offsetY = stepTable[step][1];
+                    let offsetX = stepTable[step][0];
+                    let offsetY = stepTable[step][1];
 
                     // apply the offsets to the rotation collision test and see if it works
                     if (!this.doesPieceCollide(m_activePiece, offsetX /*dx*/, offsetY /*dy*/, 1 /*drotation*/)) {
@@ -752,9 +752,9 @@
                     m_replayTime += step;
 
                     // run instructions until we're past the current m_replayTime or out of instructions
-                    for (var len = m_replayInstructions.length; m_replayIndex < len; m_replayIndex++) {
+                    for (let len = m_replayInstructions.length; m_replayIndex < len; m_replayIndex++) {
                         // fetch a new replay instruction
-                        var nextInstruction = m_replayInstructions[m_replayIndex];
+                        let nextInstruction = m_replayInstructions[m_replayIndex];
 
                         // run instructions as long as its within m_replayTime
                         if (nextInstruction.timestamp <= m_replayTime) {
@@ -765,7 +765,7 @@
                             else if (typeof nextInstruction.typeIndex != "undefined") {
                                 // instruction is updating the current Piece location or rotation, or creating a new Piece
                                 if (m_activePiece == null) {
-                                    m_activePiece = new Piece();
+                                    m_activePiece = new Piece(undefined);
                                 }
                                 m_activePiece.typeIndex = nextInstruction.typeIndex;
                                 m_activePiece.cellX = nextInstruction.x;
@@ -814,15 +814,15 @@
                 m_rowClearTime -= step;
 
                 // normalizes the animation time from 0 to 1, when it hits 1 the animation is finished
-                var normalizedClearTime = 1 - m_rowClearTime / Constants.fieldRowClearTime
+                let normalizedClearTime = 1 - m_rowClearTime / Constants.fieldRowClearTime
 
                 // when the animation is finished, rows above the cleared lines will fall down
-                var linesCleared = 0;
+                let linesCleared = 0;
                 if (normalizedClearTime >= 1) {
-                    for (var i = 0; i < m_rowsToClear.length; i++) {
-                        var y = m_rowsToClear[i] + i;
-                        for (var y2 = y; y2 >= 0; y2--) {
-                            for (var x = 0; x < Constants.fieldColumnCount; x++) {
+                    for (let i = 0; i < m_rowsToClear.length; i++) {
+                        let y = m_rowsToClear[i] + i;
+                        for (let y2 = y; y2 >= 0; y2--) {
+                            for (let x = 0; x < Constants.fieldColumnCount; x++) {
                                 if (y2 > 0) {
                                     m_cells[y2 * Constants.fieldColumnCount + x] = m_cells[(y2 - 1) * Constants.fieldColumnCount + x];
                                 } else {
@@ -859,7 +859,7 @@
                     }
 
                     // increment level if needed
-                    var newLevel = Math.floor((m_lines + Constants.linesPerLevel) / Constants.linesPerLevel);
+                    let newLevel = Math.floor((m_lines + Constants.linesPerLevel) / Constants.linesPerLevel);
                     if (newLevel > Constants.maxLevel) {
                         newLevel = Constants.maxLevel;
                     }
@@ -872,13 +872,13 @@
                 }
                 else {
                     // play the row clearing animation, it will clear cells starting at the center of the row, and working to the edges
-                    var cellsRemoved = Math.round((Constants.fieldColumnCount / 2) * normalizedClearTime);
-                    for (var x = 0; x < cellsRemoved; x++) {
-                        var leftCol = Constants.fieldColumnCount / 2 - x - 1;
-                        var rightCol = Constants.fieldColumnCount / 2 + x;
+                    let cellsRemoved = Math.round((Constants.fieldColumnCount / 2) * normalizedClearTime);
+                    for (let x = 0; x < cellsRemoved; x++) {
+                        let leftCol = Constants.fieldColumnCount / 2 - x - 1;
+                        let rightCol = Constants.fieldColumnCount / 2 + x;
 
-                        for (var rowIndex = 0; rowIndex < m_rowsToClear.length; rowIndex++) {
-                            var y = m_rowsToClear[rowIndex];
+                        for (let rowIndex = 0; rowIndex < m_rowsToClear.length; rowIndex++) {
+                            let y = m_rowsToClear[rowIndex];
                             m_cells[leftCol + y * Constants.fieldColumnCount] = 0;
                             m_cells[rightCol + y * Constants.fieldColumnCount] = 0;
                         }
@@ -926,10 +926,10 @@
                     this.handleFieldUpdate();
 
                     // locking piece may have triggered line clear
-                    for (var y = Constants.fieldRowCount - 1; y >= 0; y--) {
-                        var lineFull = true;
+                    for (let y = Constants.fieldRowCount - 1; y >= 0; y--) {
+                        let lineFull = true;
 
-                        for (var x = 0; x < Constants.fieldColumnCount; x++) {
+                        for (let x = 0; x < Constants.fieldColumnCount; x++) {
                             if (m_cells[y * Constants.fieldColumnCount + x] == 0) {
                                 lineFull = false;
                                 break;
@@ -964,8 +964,8 @@
         // initializes a newly created Field
         function init() {
             // cells are initially 0
-            var cellCount = Constants.fieldColumnCount * Constants.fieldRowCount;
-            for (var i = 0; i < cellCount; i++) {
+            let cellCount = Constants.fieldColumnCount * Constants.fieldRowCount;
+            for (let i = 0; i < cellCount; i++) {
                 m_cells[i] = 0;
             }
             m_fallSpeed = Constants.levelSpeeds[m_level - 1];
@@ -979,16 +979,16 @@
                 return;
             }
 
-            var pieceCells = m_activePiece.getCells();
+            let pieceCells = m_activePiece.getCells();
 
-            for (var y = 0; y < 4; y++) {
-                for (var x = 0; x < 4; x++) {
-                    var cell = pieceCells[y * 4 + x];
+            for (let y = 0; y < 4; y++) {
+                for (let x = 0; x < 4; x++) {
+                    let cell = pieceCells[y * 4 + x];
 
                     if (cell != 0) {
-                        var cellX = m_activePiece.cellX + x;
-                        var cellY = m_activePiece.cellY + y;
-                        var cellIndex = cellY * Constants.fieldColumnCount + cellX;
+                        let cellX = m_activePiece.cellX + x;
+                        let cellY = m_activePiece.cellY + y;
+                        let cellIndex = cellY * Constants.fieldColumnCount + cellX;
                         m_cells[cellIndex] = cell;
                     }
                 }
@@ -1015,8 +1015,8 @@
             m_replayMode = true;
 
             // set initial Field state for replay playback
-            var cellCount = Constants.fieldColumnCount * Constants.fieldRowCount;
-            for (var i = 0; i < cellCount; i++) {
+            let cellCount = Constants.fieldColumnCount * Constants.fieldRowCount;
+            for (let i = 0; i < cellCount; i++) {
                 m_cells[i] = 0;
             }
             m_activePiece = null;
@@ -1031,7 +1031,7 @@
             m_loadingReplay = true;
 
             // do XHR request for the replay data
-            var request = new XMLHttpRequest();
+            let request = new XMLHttpRequest();
             //request.open("GET", "http://localhost:17100/api/Tetris/GetReplayInstructions/" + replayID, true);
             request.open("GET", "http://elihome.net/api/Tetris/GetReplayInstructions/" + replayID, true);
             request.onreadystatechange = function (evt) {
@@ -1055,7 +1055,7 @@
                 m_ghostPiece = null;
             }
             else {
-                m_ghostPiece = new Piece();
+                m_ghostPiece = new Piece(undefined);
                 m_ghostPiece.typeIndex = m_activePiece.typeIndex;
                 m_ghostPiece.cellX = m_activePiece.cellX;
                 m_ghostPiece.cellY = m_activePiece.cellY;
@@ -1073,7 +1073,7 @@
     //
     // Helpers
     //
-    var Helpers = {};
+    let Helpers = <any>{};
     // draws a window with rounded borders, optionally specify a drawFunc to draw the window contents within its bounds
     Helpers.drawWindow = function (ctx, x, y, width, height, drawFunc) {
         ctx.save();
@@ -1081,7 +1081,7 @@
         // translate the border and window contents (drawFunc) to the location of the window in the canvas
         ctx.translate(x, y);
 
-        var cornerRadius = 8;
+        let cornerRadius = 8;
 
         ctx.strokeStyle = "#FFF";
         ctx.beginPath();
@@ -1109,13 +1109,13 @@
 
     // returns the current location query string as a collection of key-value pairs
     Helpers.getQueryStringAsDictionary = function () {
-        var dict = {};
-        var query = window.location.search.substring(1);
-        var pairs = query.split("&");
-        for (var i = 0, len = pairs.length; i < len; i++) {
-            var pair = pairs[i].split("=");
-            var key = pair[0];
-            var value = pair[1];
+        let dict = {};
+        let query = window.location.search.substring(1);
+        let pairs = query.split("&");
+        for (let i = 0, len = pairs.length; i < len; i++) {
+            let pair = pairs[i].split("=");
+            let key = pair[0];
+            let value = pair[1];
             dict[key] = value;
         }
         return dict;
@@ -1131,11 +1131,11 @@
             return;
         }
 
-        var now = (new Date()).getTime();
-        for (var i = 0; i < g_audioChan.length; i++) {
-            var audioChan = g_audioChan[i];
+        let now = (new Date()).getTime();
+        for (let i = 0; i < g_audioChan.length; i++) {
+            let audioChan = g_audioChan[i];
             if (audioChan.finished < now) {
-                var dur = sound.duration;
+                let dur = sound.duration;
                 if (dur == NaN) {
                     dur = 0.4;
                 }
@@ -1153,7 +1153,7 @@
     // Piece
     // Stores the state of a game Piece (i.e. it's type, position, rotation)
     //
-    var Piece = function (type) {
+    let Piece = function (type) {
         // the type of piece
         this.typeIndex = type;
 
@@ -1179,14 +1179,14 @@
                 ctx.translate(this.cellX * cellScale, (this.cellY - Constants.fieldHiddenRowCount) * cellScale);
             }
 
-            var pieceCells = this.getCells();
+            let pieceCells = this.getCells();
 
-            for (var y = 0; y < 4; y++) {
-                for (var x = 0; x < 4; x++) {
-                    var cell = pieceCells[(y * 4) + x];
+            for (let y = 0; y < 4; y++) {
+                for (let x = 0; x < 4; x++) {
+                    let cell = pieceCells[(y * 4) + x];
                     if (cell != 0) {
-                        var finalX = Math.floor(x * cellScale)
-                        var finalY = Math.floor(y * cellScale + this.offsetY);
+                        let finalX = Math.floor(x * cellScale)
+                        let finalY = Math.floor(y * cellScale + this.offsetY);
 
                         drawCellFromStrip(ctx, finalX, finalY, cell, cellScale);
 
@@ -1211,22 +1211,22 @@
 
         // returns the tight cell bounds (width/height) of the piece
         this.getSize = function () {
-            var width = 0;
-            var height = 0;
-            var pieceCells = this.getCells();
+            let width = 0;
+            let height = 0;
+            let pieceCells = this.getCells();
 
-            for (var y = 0; y < 4; y++) {
-                for (var x = 0; x < 4; x++) {
-                    var cell = pieceCells[(y * 4) + x];
+            for (let y = 0; y < 4; y++) {
+                for (let x = 0; x < 4; x++) {
+                    let cell = pieceCells[(y * 4) + x];
                     if (cell != 0) {
                         height++;
                         break;
                     }
                 }
             }
-            for (var x = 0; x < 4; x++) {
-                for (var y = 0; y < 4; y++) {
-                    var cell = pieceCells[(y * 4) + x];
+            for (let x = 0; x < 4; x++) {
+                for (let y = 0; y < 4; y++) {
+                    let cell = pieceCells[(y * 4) + x];
                     if (cell != 0) {
                         width++;
                         break;
@@ -1248,14 +1248,14 @@
     //
     // PieceBag
     //
-    var PieceBag = function() {
-        var m_contents = [];
-        var m_index = 0;
+    let PieceBag = function() {
+        let m_contents = [];
+        let m_index = 0;
 
         initialize();
 
         this.getNewPieceType = function() {
-            var result = m_contents[m_index];
+            let result = m_contents[m_index];
             m_index++;
 
             if (m_index >= m_contents.length) {
@@ -1271,7 +1271,7 @@
         }
 
         function shuffle(array) {
-            var counter = array.length, temp, index;
+            let counter = array.length, temp, index;
 
             while (counter > 0) {
                 // choose random index
@@ -1292,8 +1292,8 @@
     //
     // ServerConnection
     //
-    var ServerConnection = function () {
-        var m_socket = null;
+    let ServerConnection = function () {
+        let m_socket = null;
 
         // established a WebSocket connection at the specified URL
         this.connect = function (url) {
@@ -1330,7 +1330,7 @@
 
         this.onSocketMessage = function (evt) {
             if (typeof evt.data == "string") {
-                var msg = null;
+                let msg = null;
                 try {
                     msg = JSON.parse(evt.data);
                 }
@@ -1360,8 +1360,8 @@
 
         // sends updated Field state to the server
         this.handleFieldUpdate = function () {
-            var scoreData = g_activeField.getScoreData();
-            var fieldUpdateData = {
+            let scoreData = g_activeField.getScoreData();
+            let fieldUpdateData = {
                 timestamp: g_elapsedTime,
                 cells: g_activeField.getCells(),
                 score: scoreData.score,
@@ -1373,8 +1373,8 @@
 
         // sends updated Piece state to the server
         this.handlePieceUpdate = function () {
-            var activePiece = g_activeField.getActivePiece();
-            var pieceUpdateData;
+            let activePiece = g_activeField.getActivePiece();
+            let pieceUpdateData;
 
             if (activePiece) {
                 pieceUpdateData = {
@@ -1400,7 +1400,7 @@
 
         // encodes a message for transit through the WebSocket
         function sendMessage(type, data) {
-            var logPrefix = "";
+            let logPrefix = "";
 
             if (m_socket && m_socket.readyState === 1) {
                 m_socket.send(JSON.stringify({ Type: type, Data: data }));
@@ -1415,7 +1415,7 @@
 
     // entry point
     function main() {
-        window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+        window.requestAnimationFrame = window.requestAnimationFrame || window['mozRequestAnimationFrame'] || window['webkitRequestAnimationFrame'] || window['msRequestAnimationFrame'];
 
         g_canvas = document.getElementById("canvasMain");
         if (g_canvas) {
@@ -1429,19 +1429,19 @@
             resetGame();
 
             // load image resources from the server
-            var img = new Image();
+            let img = new Image();
             img.onload = function () {
                 g_cellStripImage = img;
             };
             img.src = "tetris_cells.png";
 
-            var imgVortex = new Image();
+            let imgVortex = new Image();
             imgVortex.onload = function () {
                 g_vortexImage = imgVortex;
             };
             imgVortex.src = "vortex.png";
 
-            var starImage = new Image();
+            let starImage = new Image();
             starImage.onload = function () {
                 g_starImage = starImage;
             };
@@ -1450,7 +1450,7 @@
 
             // initialize audio channels
             g_audioChan = [];
-            for (var i = 0; i < Constants.maxAudioChannels; i++) {
+            for (let i = 0; i < Constants.maxAudioChannels; i++) {
                 g_audioChan[i] = {
                     channel: new Audio(),
                     finished: -1,
@@ -1459,8 +1459,8 @@
 
             // preload audio
             function loadAudio(src) {
-                var audio = new Audio(src);
-                audio.preload = true;
+                let audio = new Audio(src);
+                audio.preload = 'auto';
                 audio.load();
                 return audio;
             }
@@ -1475,7 +1475,7 @@
             resetStars();
 
             resizeCanvas();
-            drawFrame();
+            drawFrame(0);
         }
     }
 
@@ -1491,10 +1491,10 @@
         ctx.translate(g_width / 2, g_height / 2);
 
         // normalize the warp time animation from 0 to 1 (animation is finished when it hits 1)
-        var warpTimeNormalized = 1 - (g_warpTime / Constants.warpTime);
+        let warpTimeNormalized = 1 - (g_warpTime / Constants.warpTime);
 
         // calculate the size of the background effect (the smallest of the two dimensions that make up the drawing area)
-        var minDim = Math.min(g_width, g_height);
+        let minDim = Math.min(g_width, g_height);
 
         if ((g_warpTime > 0) && (warpTimeNormalized < 0.9)) {
             // the last 10% of the warp animation will scale down the background, which creates an impression that we're flying away from it
@@ -1512,14 +1512,14 @@
 
         // if star image was loaded from the server, draw the star particles
         if (g_starImage) {
-            for (var i = 0, len = g_stars.length; i < len; i++) {
-                var star = g_stars[i];
+            for (let i = 0, len = g_stars.length; i < len; i++) {
+                let star = g_stars[i];
                 ctx.save();
                 ctx.rotate(g_vortexSpin);
                 ctx.translate(star.x, star.y);
                 ctx.scale(star.scale, star.scale);
 
-                var lifeLeft = Constants.starLifespan - star.life;
+                let lifeLeft = Constants.starLifespan - star.life;
                 if (star.life < Constants.starFadeTime) {
                     // fades the star in at the beginning of its life
                     ctx.globalAlpha = star.life / Constants.starFadeTime;
@@ -1548,7 +1548,7 @@
 
                 // if star is dead, spawn a center star at the center
                 if (star.life > Constants.starLifespan) {
-                    var angle = Helpers.getRand(0, 2 * Math.PI);
+                    let angle = Helpers.getRand(0, 2 * Math.PI);
                     star.x = 0;
                     star.y = 0;
                     star.scale = Helpers.getRand(0.1, 0.5); // random size
@@ -1562,18 +1562,18 @@
         // if this is non-zero, the warp animation is running
         if (g_warpTime > 0) {
             // define a radial gradient that is used to color the streak particles
-            var streakGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 512);
+            let streakGradient = ctx.createRadialGradient(0, 0, 0, 0, 0, 512);
             streakGradient.addColorStop(0, "rgb(3, 9, 255)");
             streakGradient.addColorStop(0.5, "rgb(64, 255, 255)");
             streakGradient.addColorStop(1, "rgb(3, 9, 255)");
 
             // draw streak particles during the first 90% of the animation time
             if (warpTimeNormalized < 0.9) {
-                for (var i = 0, len = g_warpStreaks.length; i < len; i++) {
-                    var streak = g_warpStreaks[i];
+                for (let i = 0, len = g_warpStreaks.length; i < len; i++) {
+                    let streak = g_warpStreaks[i];
 
                     // as animation runs, the length of the streaks increase by some arbitary factor
-                    var length = (800 * warpTimeNormalized);
+                    let length = (800 * warpTimeNormalized);
 
                     ctx.save();
 
@@ -1635,7 +1635,7 @@
         ctx.restore();
 
         // adjust vortex spin rate during the warp animatino
-        var spinSpeed = 0.05;
+        let spinSpeed = 0.05;
         if ((g_warpTime > 0) && (warpTimeNormalized < 0.9)) {
             spinSpeed = 0.1 + warpTimeNormalized * 0.4;
         }
@@ -1646,7 +1646,7 @@
     // draws a cell on the screen at the specified pixel location
     function drawCellFromStrip(ctx, x, y, cellColor, cellScale) {
         if (g_cellStripImage) {
-            var offset = g_cellStripOffset[cellColor];
+            let offset = g_cellStripOffset[cellColor];
 
             ctx.drawImage(g_cellStripImage, offset, 0, Constants.cellSize, Constants.cellSize, x, y, cellScale, cellScale);
         }
@@ -1656,13 +1656,13 @@
     function drawFrame(frameTime) {
         window.requestAnimationFrame(drawFrame);
 
-        var ctx = g_canvas.getContext("2d");
+        let ctx = g_canvas.getContext("2d");
         if (!ctx || (typeof frameTime === "undefined")) {
             return;
         }
 
         // calculate number of seconds elapsed since last frame
-        var step = (frameTime - g_lastFrameTime) / 1000;
+        let step = (frameTime - g_lastFrameTime) / 1000;
         g_lastFrameTime = frameTime;
 
         // run game logic for elapsed time
@@ -1679,18 +1679,18 @@
         if (g_pauseMode > 0) {
             ctx.save();
             ctx.font = Constants.pauseFont;
-            var pauseWidth = ctx.measureText("PAUSE").width;
-            var textX = g_width / 2 - pauseWidth / 2;
-            var textY = g_height / 2 + Constants.pauseFontSize / 2 - 16;
+            let pauseWidth = ctx.measureText("PAUSE").width;
+            let textX = g_width / 2 - pauseWidth / 2;
+            let textY = g_height / 2 + Constants.pauseFontSize / 2 - 16;
 
-            var scale = Math.sin(g_pauseTextPulse * 10) * 0.05 + 1;
+            let scale = Math.sin(g_pauseTextPulse * 10) * 0.05 + 1;
             g_pauseTextPulse += step;
 
             ctx.translate(textX + pauseWidth / 2, textY - Constants.pauseFontSize / 2);
             ctx.scale(scale, scale);
             ctx.translate(-pauseWidth / 2, Constants.pauseFontSize / 2);
 
-            var gradient = ctx.createLinearGradient(0, -Constants.pauseFontSize, 0, 0);
+            let gradient = ctx.createLinearGradient(0, -Constants.pauseFontSize, 0, 0);
             gradient.addColorStop(0, "rgb(255,255,255)");
             gradient.addColorStop(1, "rgb(218,188,8)");
             ctx.fillStyle = gradient;
@@ -1704,8 +1704,8 @@
         }
         else {
             // if not paused, render all of the game fields
-            for (var i = 0, len = g_fields.length; i < len; i++) {
-                var field = g_fields[i];
+            for (let i = 0, len = g_fields.length; i < len; i++) {
+                let field = g_fields[i];
                 field.draw(ctx);
             }
         }
@@ -1725,9 +1725,9 @@
             ctx.save();
 
             ctx.font = "24px Arial";
-            var metrics = ctx.measureText(g_statusText);
-            var x = Math.floor(g_width / 2 - metrics.width / 2);
-            var y = Math.floor(g_height / 2 - 24 / 2);
+            let metrics = ctx.measureText(g_statusText);
+            let x = Math.floor(g_width / 2 - metrics.width / 2);
+            let y = Math.floor(g_height / 2 - 24 / 2);
 
             ctx.fillStyle = "rgba(0, 32, 64, 0.5)"
             ctx.fillRect(0, y - 30, g_width, 48);
@@ -1814,9 +1814,9 @@
     function updateInputState(step) {
         g_timeMultiply = 1;
 
-        for (var prop in g_keyState) {
-            var key = g_keyState[prop];
-            var keyCode = parseInt(prop, 10);
+        for (let prop in g_keyState) {
+            let key = g_keyState[prop];
+            let keyCode = parseInt(prop, 10);
             if (key && key.pressed) {
                 key.duration += step;
 
@@ -1849,10 +1849,10 @@
         g_activeField = new Field();
         g_fields.push(g_activeField);
 
-        var query = Helpers.getQueryStringAsDictionary();
+        let query = Helpers.getQueryStringAsDictionary();
         if (query["ReplayID"]) {
             g_offlineMode = true;
-            var replayID = query["ReplayID"];
+            let replayID = query["ReplayID"];
             if (replayID) {
                 g_activeField.playReplay(replayID);
             }
@@ -1876,11 +1876,11 @@
 
     function resetStars() {
         g_stars = [];
-        for (var i = 0; i < Constants.starCount; i++) {
-            var angle = Helpers.getRand(0, 2 * Math.PI);
-            var dx = Math.cos(angle);
-            var dy = Math.sin(angle);
-            var newStar = {
+        for (let i = 0; i < Constants.starCount; i++) {
+            let angle = Helpers.getRand(0, 2 * Math.PI);
+            let dx = Math.cos(angle);
+            let dy = Math.sin(angle);
+            let newStar = {
                 x: 0,
                 y: 0,
                 dx: dx, // direction vector X component
@@ -1891,7 +1891,7 @@
             };
 
             // stars spawn at a random place along their life span so they're not all clumped together at the center
-            var life = Helpers.getRand(0, Constants.starLifespan);
+            let life = Helpers.getRand(0, Constants.starLifespan);
             newStar.x += dx * life * Constants.starSpeed;
             newStar.y += dy * life * Constants.starSpeed;
             newStar.life = life;
@@ -1920,8 +1920,8 @@
 
             if (g_activeField) {
                 g_activeField.cellScale = Constants.cellSize;
-                var fieldWidth = Constants.fieldColumnCount * g_activeField.cellScale;
-                var fieldHeight = (Constants.fieldRowCount - Constants.fieldHiddenRowCount) * g_activeField.cellScale;
+                let fieldWidth = Constants.fieldColumnCount * g_activeField.cellScale;
+                let fieldHeight = (Constants.fieldRowCount - Constants.fieldHiddenRowCount) * g_activeField.cellScale;
                 //if ((g_width < fieldWidth) || (g_height < fieldHeight)) {
                 //g_activeField.cellScale = 16;
                 //}
@@ -1933,8 +1933,8 @@
                 g_height = Constants.fixedHeight;
 
                 if (window.location.hash == "#multifield") {
-                    for (var i = 0, len = g_fields.length; i < len; i++) {
-                        var field = g_fields[i];
+                    for (let i = 0, len = g_fields.length; i < len; i++) {
+                        let field = g_fields[i];
                         field.x = 200 * i + 100;
                         field.y = 100;
                         field.cellScale = 16;
@@ -1962,8 +1962,8 @@
                 if (g_pauseMode == 0) {
                     g_elapsedTime += Constants.timeStep;
 
-                    for (var i = 0, len = g_fields.length; i < len; i++) {
-                        var field = g_fields[i];
+                    for (let i = 0, len = g_fields.length; i < len; i++) {
+                        let field = g_fields[i];
                         field.update(Constants.timeStep * g_timeMultiply);
                     }
                 }
@@ -1982,18 +1982,18 @@
         g_warpStreaks = [];
 
         // initialize the collection of streak particles
-        for (var i = 0; i < Constants.streakCount; i++) {
-            var angle = Helpers.getRand(0, 2 * Math.PI);
-            var dx = Math.cos(angle);
-            var dy = Math.sin(angle);
-            var newStreak = {
+        for (let i = 0; i < Constants.streakCount; i++) {
+            let angle = Helpers.getRand(0, 2 * Math.PI);
+            let dx = Math.cos(angle);
+            let dy = Math.sin(angle);
+            let newStreak = {
                 x: 0,
                 y: 0,
                 dx: dx,
                 dy: dy,
                 speed: Helpers.getRand(1, 4),
             };
-            var displacement = Helpers.getRand(1, 64);
+            let displacement = Helpers.getRand(1, 64);
             newStreak.x += newStreak.dx * displacement;
             newStreak.y += newStreak.dy * displacement;
             g_warpStreaks.push(newStreak);
