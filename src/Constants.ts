@@ -10,6 +10,12 @@ export const FIXED_HEIGHT = 720;
 /** Background (clear) color for the screen */
 export const BACKGROUND_COLOR = "rgb(0,0,0)";
 
+/** Background (clear) color for the screen */
+export const BACKGROUND_COLOR_TITLE = "rgb(30,30,30)";
+
+/** Background (white-out) color for the screen */
+export const BACKGROUND_COLOR_WHITE = "rgb(255,255,255)";
+
 /** The width and height of a cell (pixels) */
 export const CELL_SIZE = 32;
 
@@ -184,3 +190,12 @@ export const WALL_KICK_TABLE_ALT = [
     [[2, 0], [-1, 0], [2, 1], [-1, -2]], // 2->L
     [[1, 0], [-2, 0], [1, -2], [-2, 1]]  // L->O
 ];
+
+export const TITLE_ROW_WIDTH = 29;
+export const TITLE_USED_ROWS = 14;
+export const TITLE_ROW_DATA = [
+    0x1C40C391, 0x12412412, 0x12412414, 0x1C412418, 0x12412414, 0x12412412, 0x1C78C391,
+    0x00000000, 0x00000000,
+    0x03C7113C, 0x04089B20, 0x04089520, 0x05C8953C, 0x044F9120, 0x04489120, 0x0388913C
+];
+export const TITLE_PALETTE = [1, 6, 3, 7, 4, 5, 2];

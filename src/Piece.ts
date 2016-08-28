@@ -33,7 +33,8 @@ export default class Piece {
      * Renders the piece using the specified canvas 2D context, cellScale is the width/height in pixels of each cell in the Piece,
      * highlight to true will draw the piece with slightly brighter colors than normal, specify x/y will translate the Piece by so many pixels
      */
-    public draw(ctx: CanvasRenderingContext2D, cellScale: number, highlight?: boolean, x?: number, y?: number) {
+    public draw(ctx: CanvasRenderingContext2D, cellScale: number, highlight?: boolean, x?: number, y?: number,
+                dropShadow?: boolean, shadowX?: number, shadowY?: number) {
         ctx.save();
 
         if (typeof y != "undefined") {
@@ -44,6 +45,26 @@ export default class Piece {
         }
 
         let pieceCells = this.getCells();
+
+        if (dropShadow) {
+            ctx.save();
+            ctx.globalAlpha = 0.65;
+
+            for (let y = 0; y < 4; y++) {
+                for (let x = 0; x < 4; x++) {
+                    let cell = pieceCells[(y * 4) + x];
+                    if (cell != 0) {
+                        let finalX = Math.floor(x * cellScale) + shadowX
+                        let finalY = Math.floor(y * cellScale + this._offsetY) + shadowY;
+
+                        ctx.fillStyle = "#000";
+                        ctx.fillRect(finalX, finalY, cellScale, cellScale);
+                    }
+                }
+            }
+
+            ctx.restore();
+        }
 
         for (let y = 0; y < 4; y++) {
             for (let x = 0; x < 4; x++) {
@@ -74,7 +95,7 @@ export default class Piece {
     }
 
     // returns the tight cell bounds (width/height) of the piece
-    private _getSize() {
+    public getSize() {
         let width = 0;
         let height = 0;
         let pieceCells = this.getCells();

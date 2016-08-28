@@ -792,7 +792,8 @@ export default class Field {
         /*if (!Page.current.offlineMode && Page.current.activeConnection && (this == Page.current.activeField)) {
             Page.current.activeConnection.handlePieceUpdate();
         }
-        this._updateGhostPiece();*/
+        */
+        this._updateGhostPiece();
     }
 
     /** Locks the active piece to the Field by merging it with the cells collection */

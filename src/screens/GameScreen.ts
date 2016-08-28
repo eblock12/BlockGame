@@ -26,6 +26,9 @@ export default class GameScreen implements IScreen {
     // toggles user-controlled pausing
     private _userPauseMode = false;
 
+    private _enableFadeIn: boolean;
+    private _fadeInTime: number;
+
     constructor() {
         this._starfield = new Starfield();
         this._pauseMode = 0;
@@ -84,6 +87,14 @@ export default class GameScreen implements IScreen {
         if (this._activeField) {
             this._activeField.drawScore(ctx);
         }
+
+        if (this._enableFadeIn) {
+            ctx.save();
+            ctx.globalAlpha = 1 - Math.min(this._fadeInTime, 1);
+            ctx.fillStyle = "#000";
+            ctx.fillRect(0, 0, Page.current.width, Page.current.height);
+            ctx.restore();
+        }
     }
 
     public enter(finished: () => void) {
@@ -96,6 +107,10 @@ export default class GameScreen implements IScreen {
 
         this._resetGame();
 
+        this._enableFadeIn = true
+        this._fadeInTime = 0;
+        this._activeField.setPaused(true);
+
         finished();
     }
 
@@ -106,9 +121,21 @@ export default class GameScreen implements IScreen {
     }
 
     public update(step: number) {
-        for (let field of this._fields) {
-            field.update(step);
+        if (this._enableFadeIn) {
+            this._fadeInTime += step;
+            if (this._fadeInTime > 1.5) {
+                this._enableFadeIn = false;
+                this._activeField.setPaused(false);
+            }
+        } else {
+            for (let field of this._fields) {
+                field.update(step);
+            }
         }
+    }
+
+    private _isInputAllowed() {
+        return !this._enableFadeIn;
     }
 
     private _layoutFields() {
@@ -134,12 +161,20 @@ export default class GameScreen implements IScreen {
     }
 
     private _onHardDrop() {
+        if (!this._isInputAllowed()) {
+            return;
+        }
+
         if (this._activeField) {
             this._activeField.hardDrop();
         }
     }
 
     private _onPause() {
+        if (!this._isInputAllowed()) {
+            return;
+        }
+
         this._userPauseMode = !this._userPauseMode;
         this._pauseMode += this._userPauseMode ? 1 : -1;
         Helpers.Audio.playSound(Page.current.soundPause);
@@ -147,24 +182,40 @@ export default class GameScreen implements IScreen {
     }
 
     private _onRotate() {
+        if (!this._isInputAllowed()) {
+            return;
+        }
+
         if (this._activeField) {
             this._activeField.rotate();
         }
     }
 
     private _onShiftLeft() {
+        if (!this._isInputAllowed()) {
+            return;
+        }
+
         if (this._activeField) {
             this._activeField.moveLeft();
         }
     }
 
     private _onShiftRight() {
+        if (!this._isInputAllowed()) {
+            return;
+        }
+
         if (this._activeField) {
             this._activeField.moveRight();
         }
     }
 
     private _onSoftDrop() {
+        if (!this._isInputAllowed()) {
+            return;
+        }
+
         if (this._activeField) {
             this._activeField.softDrop();
         }

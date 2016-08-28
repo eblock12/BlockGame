@@ -1,6 +1,7 @@
 import * as Constants from './Constants';
 import Field from './Field';
 import GameScreen from './screens/GameScreen';
+import TitleScreen from './screens/TitleScreen';
 import Helpers from './helpers';
 import Input from './Input';
 import IScreen from './screens/IScreen';
@@ -224,7 +225,7 @@ export default class Page {
             this._resizeCanvas();
             this._drawFrame(0);
 
-            this.pushScreen(new GameScreen());
+            this.pushScreen(new TitleScreen());
         }
     }
 
