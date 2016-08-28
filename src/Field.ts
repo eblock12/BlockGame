@@ -1,4 +1,5 @@
 import * as Constants from './Constants';
+import Event from './Event';
 import Page from './Page';
 import Piece from './Piece';
 import PieceBag from './PieceBag';
@@ -9,6 +10,9 @@ import Helpers from './Helpers';
  * Replays can also be ran inside a Field, which disables user input
  */
 export default class Field {
+    /** Event that fires when the level is changed in the field */
+    public levelChangeEvent: Event<number> = new Event<number>(); 
+
     // stores the colors of all the cells in the Field (width * height)
     private _cells: number[] = [];
 
@@ -641,7 +645,7 @@ export default class Field {
                     // level was changed, get the new falling speed and start the background warp effect
                     this._level = newLevel;
                     this._fallSpeed = Constants.LEVEL_SPEEDS[this._level - 1];
-                    Page.current.startWarpEffect();
+                    this.levelChangeEvent.fire(this._level);
                 }
             }
             else {

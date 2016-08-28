@@ -1,3 +1,1 @@
-import Page from './Page';
-
-new Page();
+import './Page';
