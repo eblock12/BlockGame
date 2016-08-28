@@ -1,12 +1,12 @@
 import * as Constants from './Constants';
 import Field from './Field';
-import Helpers from './Helpers';
-import INetworkState from './INetworkState';
-import ServerConnection from './ServerConnection';
-import Starfield from './Starfield';
+import GameScreen from './screens/GameScreen';
+import Helpers from './helpers';
+import Input from './Input';
+import IScreen from './screens/IScreen';
 
 /** Stores state and resources associated with the browser page */
-export default class Page implements INetworkState {
+export default class Page {
     /** The currently active Page in the browser */
     public static current: Page = new Page();
 
@@ -33,29 +33,6 @@ export default class Page implements INetworkState {
 
     // time multiplier applied to Field physics updates (1 is normal speed)
     public timeMultiply = 1;
-
-    // stores the state of keys, if they're pressed and for how long
-    // maps KeyCode to state object
-    public keyState = {};
-
-    // collection of Fields that are being updated/renderered, normally there's just one, but there could be more
-    // to enable multiplayer
-    public fields = [];
-
-    // the current Field that the player is controlling
-    public activeField: Field;
-
-    // the amount of "pauseness", when its 0 the game is unpaused
-    public pauseMode = 0;
-
-    // toggles user-controlled pausing
-    public userPauseMode = false;
-
-    // animates the pause text scaling effect
-    public pauseTextPulse = 0;
-
-    // the current ServerConnection that relays state updates to the server
-    public activeConnection: ServerConnection = null;
 
     // set to true to enable sound effects
     public enableAudio = false;
@@ -84,8 +61,6 @@ export default class Page implements INetworkState {
     // image used by the star particles in the background
     public starImage: HTMLImageElement = null;
 
-    public starfield: Starfield = null;
-
     // when this is set to a string, it gets overlayed on top of the screen
     public statusText = null;
 
@@ -103,11 +78,42 @@ export default class Page implements INetworkState {
 
     private _initialized = false;
 
+    private _activeScreen: IScreen;
+    private _screenStack: IScreen[] = [];
+
     constructor() {
         if (document.readyState === 'complete') {
             this._initialize();
         } else {
             window.addEventListener('load', () => this._initialize());
+        }
+    }
+
+    public getCurrentScreen(): IScreen {
+        return this._activeScreen;
+    }
+
+    public pushScreen(screen: IScreen) {
+        if (this._activeScreen) {
+            // existing screen is active, wait for it to exit
+            this._activeScreen.exit(() => {
+                this._screenStack.unshift(screen);
+                this._activeScreen = screen;
+                this._activeScreen.enter(() => {});
+            });
+        } else {
+            this._screenStack = [ screen ];
+            this._activeScreen = screen;
+            this._activeScreen.enter(() => {});
+        }
+    }
+
+    public popScreen() {
+        if (this._activeScreen) {
+            this._activeScreen.exit(() => {
+                this._activeScreen = this._screenStack.shift();
+                this._activeScreen.enter(() => {});
+            });
         }
     }
 
@@ -124,55 +130,12 @@ export default class Page implements INetworkState {
         let step = (frameTime - this.lastFrameTime) / 1000;
         this.lastFrameTime = frameTime;
 
+        if (this._activeScreen) {
+            this._activeScreen.draw(ctx, step);
+        }
+
         // run game logic for elapsed time
         this._runGame(step);
-
-        // set to identity matrix
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        ctx.scale(this.scaleX, this.scaleY);
-
-        // render the game background effects
-        this.starfield.draw(ctx, this.width, this.height, step);
-
-        // if paused, render the pause text
-        if (this.pauseMode > 0) {
-            ctx.save();
-            ctx.font = Constants.PAUSE_FONT;
-            let pauseWidth = ctx.measureText("PAUSE").width;
-            let textX = this.width / 2 - pauseWidth / 2;
-            let textY = this.height / 2 + Constants.PAUSE_FONT_SIZE / 2 - 16;
-
-            let scale = Math.sin(this.pauseTextPulse * 10) * 0.05 + 1;
-            this.pauseTextPulse += step;
-
-            ctx.translate(textX + pauseWidth / 2, textY - Constants.PAUSE_FONT_SIZE / 2);
-            ctx.scale(scale, scale);
-            ctx.translate(-pauseWidth / 2, Constants.PAUSE_FONT_SIZE / 2);
-
-            let gradient = ctx.createLinearGradient(0, -Constants.PAUSE_FONT_SIZE, 0, 0);
-            gradient.addColorStop(0, "rgb(255,255,255)");
-            gradient.addColorStop(1, "rgb(218,188,8)");
-            ctx.fillStyle = gradient;
-            ctx.fillText("PAUSE", 0, 0);
-
-            ctx.strokeStyle = "#000";
-            ctx.lineWidth = 3;
-            ctx.strokeText("PAUSE", 0, 0);
-
-            ctx.restore();
-        }
-        else {
-            // if not paused, render all of the game fields
-            for (let i = 0, len = this.fields.length; i < len; i++) {
-                let field = this.fields[i];
-                field.draw(ctx);
-            }
-        }
-
-        // render the active field's score boxes
-        if (this.activeField) {
-            this.activeField.drawScore(ctx);
-        }
 
         // draw any status text overlay
         this._drawStatusText(ctx);
@@ -198,92 +161,21 @@ export default class Page implements INetworkState {
         }
     }
 
-    /** Browser window got focus */
-    private _onFocusIn(e) {
-        e = e || window.event;
-
-        this.keyState = {};
-    }
-
-    /** Browser window lost focus */
-    private _onFocusOut(e) {
-        e = e || window.event;
-
-        this.keyState = {};
-    }
-
-    /** User started pushing a key */
-    private _onKeyDown(e) {
-        e = e || window.event;
-
-        // start keeping track of keys that are pressed
-        if (!this.keyState[e.keyCode]) {
-
-            this.keyState[e.keyCode] = {
-                pressed: true,
-                duration: 0,
-                repeatStep: 0
-            };
-
-            // do any events for the key press
-            this._handleKeyPress(e.keyCode);
-        }
-    }
-
-    private _handleKeyPress(keyCode) {
-        switch (keyCode) {
-            case 27: // ESC
-                this.userPauseMode = !this.userPauseMode;
-                this.pauseMode += this.userPauseMode ? 1 : -1;
-                Helpers.Audio.playSound(this.soundPause);
-                break;
-            case 32: // space
-                this.activeField.hardDrop();
-                break;
-            case 37: // left
-                this.activeField.moveLeft();
-                break;
-            case 38: // up
-                this.activeField.rotate();
-                break;
-            case 39: // right
-                this.activeField.moveRight();
-                break;
-            case 40: // down
-                this.activeField.softDrop();
-                break;
-                //case 87: // 'w'
-                //startWarpEffect();
-                //break;
-        }
-    }
-
-    /** User stopped pushing a key */
-    private _onKeyUp(e) {
-        e = e || window.event;
-
-        // mark key as no longer pressed
-        this.keyState[e.keyCode] = null;
-    }
-
     private _initialize() {
         if (this._initialized) {
             return; // early return
         }
         this._initialized = true;
 
+        Input.initialize();
+
         window.requestAnimationFrame = window.requestAnimationFrame || window['mozRequestAnimationFrame'] || window['webkitRequestAnimationFrame'] || window['msRequestAnimationFrame'];
 
         this.canvas = document.getElementById("canvasMain");
         if (this.canvas) {
             window.addEventListener("resize", (e: Event) => this._resizeCanvas());
-            window.addEventListener("keydown", (e: Event) => this._onKeyDown(e));
-            window.addEventListener("keyup", (e: Event) => this._onKeyUp(e));
-            window.addEventListener("focusin", (e: Event) => this._onFocusIn(e));
-            window.addEventListener("focusout", (e: Event) => this._onFocusOut(e));
-            window.addEventListener("hashchange", (e: Event) => this._resetGame());
 
-            this._resetGame();
+            this._resizeCanvas();
 
             // load image resources from the server
             let img = new Image();
@@ -331,38 +223,9 @@ export default class Page implements INetworkState {
 
             this._resizeCanvas();
             this._drawFrame(0);
+
+            this.pushScreen(new GameScreen());
         }
-    }
-
-    private _resetGame() {
-        this.fields = [];
-
-        this.activeField = new Field();
-        this.starfield = new Starfield();
-        this.fields.push(this.activeField);
-
-        let query = Helpers.Dom.getQueryStringAsDictionary();
-        if (query["ReplayID"]) {
-            this.offlineMode = true;
-            let replayID = query["ReplayID"];
-            if (replayID) {
-                this.activeField.playReplay(replayID);
-            }
-        }
-        else {
-            this.activeConnection = new ServerConnection(this);
-            //this.activeConnection.connect("ws://localhost:17100/api/Tetris")
-        }
-
-        /*
-        if (window.location.hash == "#multifield") {
-            this.fields.push(new Field());
-            this.fields.push(new Field());
-            this.fields.push(new Field());
-        }
-        */
-
-        this._resizeCanvas();
     }
 
     private _resizeCanvas() {
@@ -383,35 +246,10 @@ export default class Page implements INetworkState {
             this.canvas.style.left = (window.innerWidth / 2 - this.width / 2) + "px";
             this.canvas.style.top = (window.innerHeight / 2 - this.height / 2) + "px";
 
-            if (this.activeField) {
-                this.activeField.setCellScale(Constants.CELL_SIZE);
-                let fieldWidth = Constants.FIELD_COLUMN_COUNT * this.activeField.getCellScale();
-                let fieldHeight = (Constants.FIELD_ROW_COUNT - Constants.FIELD_HIDDEN_ROW_COUNT) * this.activeField.getCellScale();
-                //if ((this.width < fieldWidth) || (this.height < fieldHeight)) {
-                //this.activeField.cellScale = 16;
-                //}
-                //fieldWidth = Constants.fieldColumnCount * this.activeField.cellScale;
-                //fieldHeight = (Constants.fieldRowCount - Constants.fieldHiddenRowCount) * this.activeField.cellScale;
-                this.scaleX = this.width / Constants.FIXED_WIDTH;
-                this.scaleY = this.height / Constants.FIXED_HEIGHT;
-                this.width = Constants.FIXED_WIDTH;
-                this.height = Constants.FIXED_HEIGHT;
-
-                if (window.location.hash == "#multifield") {
-                    for (let i = 0, len = this.fields.length; i < len; i++) {
-                        let field = this.fields[i];
-                        field.x = 200 * i + 100;
-                        field.y = 100;
-                        field.cellScale = 16;
-                    }
-                }
-                else {
-                    this.activeField.setCanvasLocation(
-                        this.width / 2 - fieldWidth / 2,
-                        this.height / 2 - fieldHeight / 2
-                    );
-                }
-            }
+            this.scaleX = this.width / Constants.FIXED_WIDTH;
+            this.scaleY = this.height / Constants.FIXED_HEIGHT;
+            this.width = Constants.FIXED_WIDTH;
+            this.height = Constants.FIXED_HEIGHT;
         }
     }
 
@@ -421,8 +259,13 @@ export default class Page implements INetworkState {
         while (this.stepTime > Constants.TIME_STEP) {
             this.stepTime -= Constants.TIME_STEP;
 
-            this._updateInputState(Constants.TIME_STEP);
+            Input.update(Constants.TIME_STEP);
 
+            if (this._activeScreen) {
+                this._activeScreen.update(Constants.TIME_STEP);
+            }
+
+/*
             if (this.offlineMode || (this.activeConnection && this.activeConnection.isOpen())) {
                 this.statusText = "";
 
@@ -438,40 +281,7 @@ export default class Page implements INetworkState {
             }
             else {
                 this.statusText = "Connecting...";
-            }
-        }
-    }
-
-    /** Periodically check to see if keys are still pressed, and trigger events if they repeat */
-    private _updateInputState(step: number) {
-        this.timeMultiply = 1;
-
-        for (let prop in this.keyState) {
-            let key = this.keyState[prop];
-            let keyCode = parseInt(prop, 10);
-            if (key && key.pressed) {
-                key.duration += step;
-
-                // if key has been pressed long enough and repeats are supported for this key, start triggering repeats
-                if (key.duration > Constants.REPEAT_DELAY && (Constants.REPEATED_KEY_CODES.indexOf(keyCode) > -1)) {
-                    if (key.repeatStep <= 0) {
-                        // time until another repeat happens
-                        key.repeatStep = Constants.REPEAT_PERIOD;
-                    }
-                    else {
-                        // repeat is ready, trigger the event
-                        key.repeatStep -= step;
-                        if (key.repeatStep <= 0) {
-                            this._handleKeyPress(keyCode);
-                        }
-                    }
-                }
-
-                // debug key, when ~ is pushed, speed up time
-                if (keyCode == 192) {
-                    this.timeMultiply = 10;
-                }
-            }
+            }*/
         }
     }
 }

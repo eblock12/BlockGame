@@ -64,15 +64,6 @@ export const LEVEL_SPEEDS = [0.8, 0.72, 0.63, 0.55, 0.47, 0.38, 0.3, 0.22, 0.13,
 /** How long (seconds) until a piece is locked to the game field */
 export const LOCK_DELAY = 0.5;
 
-/** How long (seconds) to hold a key before it starts repeating */
-export const REPEAT_DELAY = 0.18;
-
-/** How long (seconds) for the period between key repeats */
-export const REPEAT_PERIOD = 0.08;
-
-/** Which key codes need repeating when they're held */
-export const REPEATED_KEY_CODES = [37, 39, 40];
-
 /** Number of star particles in the background */
 export const STAR_COUNT = 30;
 

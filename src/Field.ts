@@ -3,7 +3,7 @@ import Event from './Event';
 import Page from './Page';
 import Piece from './Piece';
 import PieceBag from './PieceBag';
-import Helpers from './Helpers';
+import Helpers from './helpers';
 
 /**
  * Stores the state of a game field (where pieces fall into and get locked down), handles its rendering and physics
@@ -73,6 +73,8 @@ export default class Field {
 
     // the current instruction pointer within the replay
     private _replayIndex: number = 0;
+
+    private _paused: boolean;
 
     // pixel location of this game Field within the canvas
     private _x: number = 0;
@@ -274,7 +276,7 @@ export default class Field {
                 ctx.restore();
 
                 // don't show next piece while the game is paused
-                if (Page.current.pauseMode == 0) {
+                if (!this._paused) {
                     let offsetX = 24;
                     let offsetY = Constants.SCORE_FONT_SIZE * 2;
 
@@ -491,6 +493,10 @@ export default class Field {
     /** Sets the width/height dimension of a cell within this Field */
     public setCellScale(newCellScale: number) {
         this._cellScale = newCellScale;
+    }
+
+    public setPaused(paused: boolean) {
+        this._paused = paused;
     }
 
     /** Performs a "soft drop" of a single row for the active piece */
@@ -776,17 +782,17 @@ export default class Field {
 
     /** Sends the current Field state to the server */
     private _handleFieldUpdate() {
-        if (!Page.current.offlineMode && Page.current.activeConnection && (this == Page.current.activeField)) {
+        /*if (!Page.current.offlineMode && Page.current.activeConnection && (this == Page.current.activeField)) {
             Page.current.activeConnection.handleFieldUpdate();
-        }
+        }*/
     }
 
     /** Sends the state of the active Piece to the server */
     private _handlePieceUpdate() {
-        if (!Page.current.offlineMode && Page.current.activeConnection && (this == Page.current.activeField)) {
+        /*if (!Page.current.offlineMode && Page.current.activeConnection && (this == Page.current.activeField)) {
             Page.current.activeConnection.handlePieceUpdate();
         }
-        this._updateGhostPiece();
+        this._updateGhostPiece();*/
     }
 
     /** Locks the active piece to the Field by merging it with the cells collection */

@@ -14,6 +14,10 @@ export default class Event<T> implements IEvent<T> {
         this._callbacks = this._callbacks.filter(item => (item !== callback));
     }
 
+    public offAll() {
+        this._callbacks = [];
+    }
+
     public fire(data?: T) {
         this._callbacks.forEach(callback => callback(data));
     }

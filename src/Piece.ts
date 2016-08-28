@@ -1,5 +1,5 @@
 import * as Constants from './Constants';
-import Helpers from './Helpers';
+import Helpers from './helpers';
 
 /** Stores the state of a game Piece (i.e. it's type, position, rotation) */
 export default class Piece {

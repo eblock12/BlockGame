@@ -1,6 +1,6 @@
 import * as Constants from './Constants';
 import Page from './Page';
-import Helpers from './Helpers';
+import Helpers from './helpers';
 
 export default class Starfield {
     // spin angle of the background vortex
@@ -20,8 +20,6 @@ export default class Starfield {
 
     constructor() {
         this._resetStars();
-
-        Page.current.activeField.levelChangeEvent.on(() => this.startWarpEffect());
     }
 
     /** Renders the Starfield effect to the specific canvas */
