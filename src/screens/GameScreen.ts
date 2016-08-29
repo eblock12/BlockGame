@@ -129,7 +129,9 @@ export default class GameScreen implements IScreen {
             }
         } else {
             for (let field of this._fields) {
-                field.update(step);
+                if (field !== this._activeField || !this._userPauseMode) {
+                    field.update(step);
+                }
             }
         }
     }
