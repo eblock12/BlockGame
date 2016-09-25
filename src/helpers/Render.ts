@@ -19,6 +19,14 @@ export default class RenderHelper {
         ctx.strokeText(text, 0, 0);
     }*/
 
+    public static drawText(ctx: CanvasRenderingContext2D, text: string, x: number, y: number) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.fillText(text, 0, 0);
+        ctx.strokeText(text, 0, 0);
+        ctx.restore();
+    }
+
     /** Draws a window with rounded borders, optionally specify a drawFunc to draw the window contents within its bounds */
     public static drawWindow(ctx: CanvasRenderingContext2D, x: number, y: number, width, height: number, drawFunc: (ctx: CanvasRenderingContext2D) => (void)): void {
         ctx.save();
@@ -26,7 +34,7 @@ export default class RenderHelper {
         // translate the border and window contents (drawFunc) to the location of the window in the canvas
         ctx.translate(x, y);
 
-        var cornerRadius = 8;
+        const cornerRadius = 8;
 
         ctx.strokeStyle = "#FFF";
         ctx.beginPath();
@@ -35,13 +43,17 @@ export default class RenderHelper {
         ctx.arcTo(width, height, width - cornerRadius, height, cornerRadius);
         ctx.arcTo(0, height, 0, -cornerRadius, cornerRadius);
         ctx.arcTo(0, 0, cornerRadius, 0, cornerRadius);
+        ctx.clip();
+
+        if (drawFunc) {
+            ctx.save();
+            drawFunc(ctx);
+            ctx.restore();
+        }
 
         ctx.lineWidth = 4;
         ctx.stroke();
-
-        if (drawFunc) {
-            drawFunc(ctx);
-        }
+        ctx.clip();
 
         ctx.restore();
     }

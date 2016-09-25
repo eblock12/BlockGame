@@ -109,6 +109,12 @@ export const SCORE_FONT = "18px Lucida Console, Monaco, monospace";
 /** Font size used to render scores and labels */
 export const SCORE_FONT_SIZE = 18;
 
+/** Font used to render menu text */
+export const MENU_FONT = "32px Lucida Console, Monaco, monospace";
+
+/** Font size used to render menu text */
+export const MENU_FONT_SIZE = 32;
+
 /** Maximum number of sounds that can play at once */
 export const MAX_AUDIO_CHANELS = 100;
 

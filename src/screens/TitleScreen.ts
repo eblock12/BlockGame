@@ -15,7 +15,6 @@ const PARTICLE_CELL_SCALE = 48;
 const TITLE_CELL_SCALE = 24;
 const TITLE_TOP_MARGIN = 16;
 const TITLE_INITIAL_FALL_SPEED = 800;
-const TITLE_FALL_CELL_DEV = TITLE_CELL_SCALE * 2;
 const TITLE_GRAVITY = 9000;
 const FLASH_SPEED = 1;
 
@@ -27,6 +26,8 @@ export default class TitleScreen implements IScreen {
     private _titleCellFallOffset: number[];
     private _whiteFlash: number;
     private _menuVisible: boolean;
+    private _menuItems: IMenuItem[];
+    private _menuSel: number;
     private _particles: PieceParticle[] = [];
     private _particlesVisible: boolean;
     private _glintTime: number;
@@ -35,6 +36,12 @@ export default class TitleScreen implements IScreen {
     private _fadeOutTime: number;
 
     constructor() {
+        this._menuItems = [
+            { text: 'SINGLE PLAYER', callback: this._onMenuSelectGame },
+            { text: 'MULTI PLAYER', callback: this._onMenuSelectMulti },
+            { text: 'OPTIONS', callback: this._onMenuSelectOptions },
+            { text: 'RECORDS', callback: this._onMenuSelectRecords }
+        ];
     }
 
     public draw(ctx: CanvasRenderingContext2D, step: number) {
@@ -50,18 +57,17 @@ export default class TitleScreen implements IScreen {
         this._drawTitle(ctx);
 
         const menuWidth = 380;
-        const menuHeight = 265; 
+        const menuHeight = 225; 
 
         if (this._menuVisible) {
             Helpers.Render.drawWindow(
                 ctx,
                 Page.current.width / 2 - menuWidth / 2,
-                Page.current.height - menuHeight - 16,
+                Page.current.height - menuHeight - 42,
                 menuWidth,
                 menuHeight,
-                () => {
-
-                });
+                (innerCtx) => this._drawMenuItems(innerCtx, menuWidth, menuHeight)
+            );
         }
 
         if (this._pendingExitCallback) {
@@ -81,6 +87,7 @@ export default class TitleScreen implements IScreen {
         this._whiteFlash = -1;
         this._animatingTitleIn = true;
         this._menuVisible = false;
+        this._menuSel = 0;
         this._initializeParticles();
         this._particlesVisible = false;
         this._glintTime = -5;
@@ -89,6 +96,8 @@ export default class TitleScreen implements IScreen {
 
         Input.on(InputCommand.menuCancel, () => this._onMenuCancel());
         Input.on(InputCommand.menuConfirm, () => this._onMenuConfirm());
+        Input.on(InputCommand.menuUp, () => this._onMenuUp());
+        Input.on(InputCommand.menuDown, () => this._onMenuDown());
 
         finished();
     }
@@ -143,6 +152,35 @@ export default class TitleScreen implements IScreen {
                 this._pendingExitCallback();
                 this._pendingExitCallback = null;
             }
+        }
+    }
+
+    private _drawMenuItems(ctx: CanvasRenderingContext2D, menuWidth: number, menuHeight: number) {
+        ctx.fillStyle = "#FFF";
+        ctx.strokeStyle = "rgb(82, 190, 223)";
+        ctx.lineWidth = 0.5;
+        ctx.font = Constants.MENU_FONT;
+
+        const ITEM_HEIGHT = menuHeight / this._menuItems.length;
+        const OFFSET = 10;
+
+        for (let i = 0; i < this._menuItems.length; i++) {
+            let item = this._menuItems[i];
+            let textWidth = ctx.measureText(item.text).width;
+
+            if (i === this._menuSel) {
+                ctx.save();
+                ctx.globalAlpha = 0.65;
+                ctx.fillStyle = "rgb(192, 192, 192)";
+                ctx.fillRect(0, i * ITEM_HEIGHT, menuWidth, ITEM_HEIGHT);
+                ctx.restore();
+            }
+
+            Helpers.Render.drawText(
+                ctx,
+                item.text,
+                menuWidth / 2 - textWidth / 2,
+                i * ITEM_HEIGHT + ITEM_HEIGHT / 2 + OFFSET);
         }
     }
 
@@ -265,9 +303,43 @@ export default class TitleScreen implements IScreen {
     private _onMenuConfirm() {
         if (this._animatingTitleIn) {
             this._endAnimateTitleIn();
-        } else {
-            Page.current.pushScreen(new GameScreen());
+        } else if (this._menuVisible) {
+            let menuItem = this._menuItems[this._menuSel];
+
+            if (menuItem && menuItem.callback) {
+                menuItem.callback();
+            }
         }
+    }
+
+    private _onMenuUp() {
+        if (this._menuVisible) {
+            this._menuSel--;
+            this._menuSel = Helpers.Math.clamp(this._menuSel, 0, this._menuItems.length - 1);
+        }
+    }
+
+    private _onMenuDown() {
+        if (this._menuVisible) {
+            this._menuSel++;
+            this._menuSel = Helpers.Math.clamp(this._menuSel, 0, this._menuItems.length - 1);
+        }
+    }
+
+    private _onMenuSelectGame() {
+        Page.current.pushScreen(new GameScreen());
+    }
+
+    private _onMenuSelectMulti() {
+
+    }
+
+    private _onMenuSelectOptions() {
+
+    }
+
+    private _onMenuSelectRecords() {
+
     }
 }
 
@@ -312,8 +384,7 @@ class PieceParticle {
         this._y += this._dy * step;
         this._rotation += this._dRotatation;
 
-        const margin = 4 * PARTICLE_CELL_SCALE;
-        let isDead = false;        
+        const margin = 4 * PARTICLE_CELL_SCALE;    
 
         if ((this._x < -margin && this._dx < 0) ||
             (this._x > Page.current.width + margin && this._dx > 0) ||
@@ -357,4 +428,9 @@ class PieceParticle {
             }
         }
     }
+}
+
+interface IMenuItem {
+    text: string;
+    callback: () => void;
 }
