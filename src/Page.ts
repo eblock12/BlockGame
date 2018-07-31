@@ -207,13 +207,6 @@ export default class Page {
                 };
             }
 
-            // preload audio
-            function loadAudio(src) {
-                let audio = new Audio(src);
-                audio.preload = 'auto';
-                audio.load();
-                return audio;
-            }
             this.soundRotate = loadAudio("audio/shift.mp3");
             this.soundHit = loadAudio("audio/hit.mp3");
             this.soundShift = loadAudio("audio/shift.mp3");
@@ -285,4 +278,12 @@ export default class Page {
             }*/
         }
     }
+}
+
+// preload audio
+function loadAudio(src) {
+    let audio = new Audio(src);
+    audio.preload = 'auto';
+    audio.load();
+    return audio;
 }

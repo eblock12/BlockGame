@@ -416,7 +416,7 @@ export default class Field {
         // do XHR request for the replay data
         let request = new XMLHttpRequest();
         request.open("GET", "http://localhost:17100/api/Tetris/GetReplayInstructions/" + replayID, true);
-        request.onreadystatechange = function (evt) {
+        request.onreadystatechange = (evt) => {
             if (request.readyState == 4) {
                 if (request.status == 200) {
                     // request returned data, parse instruction array and start the replay
