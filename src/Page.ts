@@ -198,22 +198,24 @@ export default class Page {
             starImage.src = "img/star.png";
 
 
-            // initialize audio channels
-            this.audioChan = [];
-            for (let i = 0; i < Constants.MAX_AUDIO_CHANELS; i++) {
-                this.audioChan[i] = {
-                    channel: new Audio(),
-                    finished: -1,
-                };
-            }
+            if (this.enableAudio) {
+                // initialize audio channels
+                this.audioChan = [];
+                for (let i = 0; i < Constants.MAX_AUDIO_CHANELS; i++) {
+                    this.audioChan[i] = {
+                        channel: new Audio(),
+                        finished: -1,
+                    };
+                }
 
-            this.soundRotate = loadAudio("audio/shift.mp3");
-            this.soundHit = loadAudio("audio/hit.mp3");
-            this.soundShift = loadAudio("audio/shift.mp3");
-            this.soundClear = loadAudio("audio/clear.mp3");
-            this.soundWarp = loadAudio("audio/warp.mp3");
-            this.soundGameOver = loadAudio("audio/gameover.mp3");
-            this.soundPause = loadAudio("audio/pause.mp3");
+                this.soundRotate = loadAudio("audio/shift.mp3");
+                this.soundHit = loadAudio("audio/hit.mp3");
+                this.soundShift = loadAudio("audio/shift.mp3");
+                this.soundClear = loadAudio("audio/clear.mp3");
+                this.soundWarp = loadAudio("audio/warp.mp3");
+                this.soundGameOver = loadAudio("audio/gameover.mp3");
+                this.soundPause = loadAudio("audio/pause.mp3");
+            }
 
             this._resizeCanvas();
             this._drawFrame(0);
